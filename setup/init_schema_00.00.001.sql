@@ -2,10 +2,19 @@ drop database if exists pikopos;
 create database pikopos;
 use pikopos;
 
--- create "company, outlet"
+-- create "company, company_detail, outlet"
 create table company (
   id int not null auto_increment,
+  username varchar(16) not null,
   name varchar(32) not null,
+  status enum('free', 'free-ads', 'paid-01') not null,
+  primary key (id),
+  unique (username)
+);
+
+create table company_detail (
+  id int not null auto_increment,
+  company_id int not null,
   address varchar(128),
   city varchar(64),
   province varchar(32),
@@ -18,8 +27,8 @@ create table company (
   website varchar(64),
   twitter varchar(48),
   facebook varchar(48),
-  status enum('free', 'free-ads', 'paid-01') not null,
-  primary key (id)
+  primary key (id),
+  foreign key (company_id) references company(id)
 );
 
 create table outlet (
@@ -41,27 +50,32 @@ create table outlet (
 
 -- create "role, privilege"
 create table role (
+  company_id int not null,
   id int not null auto_increment,
   name varchar(16) not null,
   status enum('inactive', 'active') not null,
-  primary key (id)
+  primary key (id),
+  foreign key (company_id) references company(id)
 );
 
 create table privilege (
   id int not null auto_increment,
   tag varchar(128) not null, -- max 128 char for privilege tag
+  employee_required tinyint(1) not null,
   primary key (id),
   unique (tag)
 );
 
 create table role_privilege (
+  company_id int not null,
   id int not null auto_increment,
   role_id int not null,
   privilege_id int not null,
   primary key (id),
+  unique (role_id, privilege_id),
   foreign key (role_id) references role(id),
   foreign key (privilege_id) references privilege(id),
-  unique (role_id, privilege_id)
+  foreign key (company_id) references company(id)
 );
 
 -- create "employee, employee_register, employee_outlet"
@@ -70,13 +84,13 @@ create table employee (
   company_id int not null,
   id int not null auto_increment,
   first_name varchar(16) not null,
-  last_name varchar(16),
+  last_name varchar(16) not null,
   email varchar(48) not null,
-  password varchar(255) not null, -- hashed
   phone_number varchar(16) not null,
+  password varchar(64) not null, -- hashed
   role_id int not null,
-  pin_number varchar(255), -- hashed
-  status enum('unvalidate', 'inactive', 'active') not null,
+  pin varchar(64), -- hashed
+  status enum('unverified', 'inactive', 'active') not null,
   primary key (id),
   foreign key (role_id) references role(id),
   foreign key (company_id) references company(id)
@@ -87,7 +101,7 @@ create table employee_register (
   employee_id int not null,
   email varchar(48) not null,
   phone_number varchar(16) not null,
-  otp_code varchar(255) not null, -- hashed
+  otp_code varchar(64) not null,
   expired_at datetime not null,
   primary key (id),
   foreign key (employee_id) references employee(id)
@@ -98,9 +112,9 @@ create table employee_outlet (
   employee_id int not null,
   outlet_id int not null,
   primary key (id),
+  unique (employee_id, outlet_id),
   foreign key (employee_id) references employee(id),
-  foreign key (outlet_id) references outlet(id),
-  unique (employee_id, outlet_id)
+  foreign key (outlet_id) references outlet(id)
 );
 
 -- create "unit, unit_conversion"
