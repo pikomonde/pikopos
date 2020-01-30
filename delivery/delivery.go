@@ -4,6 +4,7 @@ import (
 	// initialize mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo"
+	echoMiddle "github.com/labstack/echo/middleware"
 	"github.com/pikomonde/pikopos/service"
 )
 
@@ -16,6 +17,8 @@ type Delivery struct {
 // New returns the delivery
 func New(s *service.Service) *Delivery {
 	dlvrEcho := echo.New()
+	// TODO; remove CORS in production
+	dlvrEcho.Use(echoMiddle.CORS())
 	return &Delivery{s, dlvrEcho}
 }
 

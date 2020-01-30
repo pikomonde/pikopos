@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -44,7 +45,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
 			"company":    fmt.Sprintf("%+v", company),
-		}).Errorln("[Service][Login][GetEmployeeByLogin]: ", err.Error())
+		}).Errorln("[Service][Login][GetEmployeeByIdentifier]: ", err.Error())
 		return "", http.StatusInternalServerError, err
 	}
 
@@ -56,7 +57,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"loginInput": fmt.Sprintf("%+v", li),
 			"company":    fmt.Sprintf("%+v", company),
 			"employee":   fmt.Sprintf("%+v", employee),
-		}).Errorln("[Service][Register][GetEmployeeByLogin]: ", err.Error())
+		}).Errorln("[Service][Login][GetEmployeePassword]: ", err.Error())
 		return "", http.StatusInternalServerError, err
 	}
 	if passwordHashed != expectedPasswordHashed {
@@ -87,11 +88,21 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 		PhoneNumber:     employee.PhoneNumber,
 		Privileges:      []string{},
 	}
+	serviceUserSessionBytes, err := json.Marshal(serviceUserSession)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"loginInput":         fmt.Sprintf("%+v", li),
+			"company":            fmt.Sprintf("%+v", company),
+			"employee":           fmt.Sprintf("%+v", employee),
+			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
+		}).Errorln("[Service][Login][Marshal serviceUserSession]: ", err.Error())
+		return "", http.StatusInternalServerError, err
+	}
 
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["data"] = serviceUserSession
-	claims["exp"] = time.Now().Add(tokenCookieExpire).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"data": string(serviceUserSessionBytes),
+		"exp":  time.Now().Add(tokenCookieExpire).Unix(),
+	})
 	tokenEncoded, err := token.SignedString([]byte(config.JWTSecret))
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -99,7 +110,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"company":            fmt.Sprintf("%+v", company),
 			"employee":           fmt.Sprintf("%+v", employee),
 			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
-		}).Errorln("[Service][Register][GetEmployeeByLogin]: ", err.Error())
+		}).Errorln("[Service][Login][SignedString]: ", err.Error())
 		return "", http.StatusInternalServerError, err
 	}
 
