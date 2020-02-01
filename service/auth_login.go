@@ -18,13 +18,19 @@ const (
 	tokenCookieExpire = 72 * time.Hour
 )
 
+// LoginInput is used as request for login
 type LoginInput struct {
 	CompanyUsername    string `max:"16" json:"company_username"`
 	EmployeeIdentifier string `max:"48" json:"employee_identifier"`
 	Password           string `min:"8" json:"password"`
 }
 
-func (s *Service) Login(li LoginInput) (string, int, error) {
+// LoginOutput is used as response for login
+type LoginOutput struct {
+	Token string `json:"token"`
+}
+
+func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
 
@@ -37,7 +43,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
 		}).Errorln("[Service][Login][GetCompanyByUsername]: ", err.Error())
-		return "", http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	employee, err := s.Repository.GetEmployeeByIdentifier(company.ID, li.EmployeeIdentifier)
@@ -46,7 +52,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"loginInput": fmt.Sprintf("%+v", li),
 			"company":    fmt.Sprintf("%+v", company),
 		}).Errorln("[Service][Login][GetEmployeeByIdentifier]: ", err.Error())
-		return "", http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	passwordHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
@@ -58,10 +64,10 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"company":    fmt.Sprintf("%+v", company),
 			"employee":   fmt.Sprintf("%+v", employee),
 		}).Errorln("[Service][Login][GetEmployeePassword]: ", err.Error())
-		return "", http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 	if passwordHashed != expectedPasswordHashed {
-		return "", http.StatusUnauthorized, errors.New("Wrong Email/Phonenumber or Password")
+		return nil, http.StatusUnauthorized, errors.New("Wrong Email/Phonenumber or Password")
 	}
 
 	// TODO: get privileges
@@ -96,7 +102,7 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"employee":           fmt.Sprintf("%+v", employee),
 			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
 		}).Errorln("[Service][Login][Marshal serviceUserSession]: ", err.Error())
-		return "", http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -111,8 +117,10 @@ func (s *Service) Login(li LoginInput) (string, int, error) {
 			"employee":           fmt.Sprintf("%+v", employee),
 			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
 		}).Errorln("[Service][Login][SignedString]: ", err.Error())
-		return "", http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 
-	return tokenEncoded, http.StatusOK, nil
+	return &LoginOutput{
+		tokenEncoded,
+	}, http.StatusOK, nil
 }

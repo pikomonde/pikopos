@@ -2,28 +2,51 @@ package delivery
 
 import (
 	// initialize mysql driver
+	"crypto/tls"
+	"net/http"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/labstack/echo"
-	echoMiddle "github.com/labstack/echo/middleware"
+	"github.com/pikomonde/pikopos/delivery/handler"
 	"github.com/pikomonde/pikopos/service"
+	"github.com/rs/cors"
 )
 
 // Delivery contains services and endpoints
 type Delivery struct {
-	Service      *service.Service
-	EchoDelivery *echo.Echo
+	Handler *handler.Handler
 }
 
 // New returns the delivery
 func New(s *service.Service) *Delivery {
-	dlvrEcho := echo.New()
-	// TODO; remove CORS in production
-	dlvrEcho.Use(echoMiddle.CORS())
-	return &Delivery{s, dlvrEcho}
+	mux := http.NewServeMux()
+	return &Delivery{&handler.Handler{
+		Service: s,
+		Mux:     mux,
+	}}
 }
 
 // Start starts the delivery server
 func (d *Delivery) Start() {
-	d.PrepareAuth()
-	d.EchoDelivery.Start(":1235")
+	// Register handlers
+	d.Handler.RegisterAuth()
+
+	// Starting server
+	// TODO; remove CORS in production
+	serverHandlers := cors.Default().Handler(d.Handler.Mux)
+	srv := &http.Server{
+		ReadTimeout:  5000 * time.Millisecond,
+		WriteTimeout: 5000 * time.Millisecond,
+		TLSConfig: &tls.Config{
+			PreferServerCipherSuites: true,
+			CurvePreferences: []tls.CurveID{
+				tls.CurveP256,
+				tls.X25519,
+			},
+		},
+		Handler: serverHandlers,
+		Addr:    ":1235",
+	}
+	srv.ListenAndServe()
+	// log.Fatal(srv.ListenAndServe())
 }
