@@ -1,15 +1,10 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/pikomonde/pikopos/config"
-	"github.com/pikomonde/pikopos/entity"
 	"github.com/pikomonde/pikopos/service"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,19 +15,15 @@ type Handler struct {
 	Mux     *http.ServeMux
 }
 
-type middlewareData struct {
-	User entity.ServiceUserSession
-}
-
 // RegisterAuth is used to register auth related handlers
 func (h *Handler) RegisterAuth() {
-	h.Mux.HandleFunc("/ping", h.HandlePing)
+	h.Mux.HandleFunc("/ping", ctxGET(h.HandlePing))
 
-	// h.Mux.HandleFunc("/auth/register", h.HandleAuthRegister)
-	// h.Mux.HandleFunc("/auth/verify", h.HandleAuthVerify)
+	h.Mux.HandleFunc("/auth/register", ctxPOST(h.HandleAuthRegister))
+	h.Mux.HandleFunc("/auth/verify", ctxPOST(h.HandleAuthVerify))
 
-	h.Mux.HandleFunc("/auth/login", h.HandleAuthLogin)
-	h.Mux.HandleFunc("/auth/me", middleAuth(h.HandleAuthMe))
+	h.Mux.HandleFunc("/auth/login", ctxPOST(h.HandleAuthLogin))
+	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
 
 	// h.Mux.GET("/login", h.HandlerLoginHTML)
 	// h.Mux.POST("/register", h.HandlerRegisterHTML)
@@ -43,61 +34,6 @@ func (h *Handler) RegisterAuth() {
 	// h.Mux.GET("/restricted", h.HandlerRestricted)
 }
 
-func middleAuth(next http.HandlerFunc) http.HandlerFunc {
-	// TODO: Optimize this if possible
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqToken := r.Header.Get("Authorization")
-		splitToken := strings.Split(reqToken, "Bearer ")
-		if len(splitToken) != 2 {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorDeformedJWTToken)
-			return
-		}
-		reqToken = splitToken[1]
-
-		token, err := jwt.Parse(reqToken, func(token *jwt.Token) (interface{}, error) {
-			// validation
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(config.JWTSecret), nil
-		})
-		if err != nil {
-			log.WithFields(log.Fields{
-				"reqToken": reqToken,
-				"token":    token,
-			}).Errorln("[Delivery][middleAuth][Parse]: ", err.Error())
-			respErrorJSON(w, r, http.StatusUnauthorized, errorWrongJWTSigningMethod)
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorExpiredJWTToken)
-			return
-		}
-
-		userSession := entity.ServiceUserSession{}
-		userSessionStr, ok := claims["data"].(string)
-		if !ok {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorMissingJWTData)
-			return
-		}
-
-		err = json.Unmarshal([]byte(userSessionStr), &userSession)
-		if err != nil {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorDeformedJWTToken)
-			return
-		}
-
-		newCtx := context.WithValue(nil, ctxData("ctxData"), middlewareData{
-			User: userSession,
-		})
-		newReq := r.WithContext(newCtx)
-
-		next.ServeHTTP(w, newReq)
-	})
-}
-
 // HandleAuthRegister is used for user to register. User sent the register info
 // (from frontend), then this API returns executes verification code
 func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
@@ -105,8 +41,9 @@ func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
 	in := service.RegisterInput{}
 	err := decoder.Decode(&in)
 	if err != nil {
-		log.WithFields(log.Fields{}).
-			Errorln("[Delivery][HandleAuthRegister][Decode]: ", err.Error())
+		log.WithFields(log.Fields{
+			"in": fmt.Sprintf("%+v", in),
+		}).Errorln("[Delivery][HandleAuthRegister][Decode]: ", err.Error())
 		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
 		return
 	}
@@ -124,48 +61,38 @@ func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// func (h *Handler) HandleAuthVerify(w http.ResponseWriter, req *http.Request) {
-// 	decoder := json.NewDecoder(ctx.Request().Body)
-// 	li := service.LoginInput{}
-// 	err := decoder.Decode(&li)
-// 	if err != nil {
-// 		log.WithFields(log.Fields{}).Errorln("[Delivery][HandleAuthVerify][Decode]: ", err.Error())
-// 		ctx.JSON(http.StatusBadRequest, responseAPI{
-// 			Status: http.StatusBadRequest,
-// 			// ProcessTime: 0,
-// 			Data: errors.New(errorWrongJSONFormat).Error(),
-// 		})
-// 		return err
-// 	}
+// HandleAuthVerify is used for user to verify their account. User sent the otp
+// (from frontend), then the app change the user status to active
+func (h *Handler) HandleAuthVerify(w http.ResponseWriter, r *http.Request) {
+	// decoder := json.NewDecoder(r.Body)
+	// in := service.LoginInput{}
+	// err := decoder.Decode(&in)
+	// if err != nil {
+	// 	log.WithFields(log.Fields{
+	// 		"in": fmt.Sprintf("%+v", in),
+	// 	}).Errorln("[Delivery][HandleAuthVerify][Decode]: ", err.Error())
+	// 	respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
+	// 	return
+	// }
 
-// 	tokenEncoded, status, err := d.Service.Login(li)
-// 	if err != nil {
-// 		ctx.JSON(status, responseAPI{
-// 			Status: status,
-// 			// ProcessTime: 0,
-// 			Data: err.Error(),
-// 		})
-// 	}
+	// tokenEncoded, status, err := d.Service.Verify(li)
+	// if err != nil {
+	// 	ctx.JSON(status, responseAPI{
+	// 		Status: status,
+	// 		// ProcessTime: 0,
+	// 		Data: err.Error(),
+	// 	})
+	// }
 
-// 	// cookie := new(http.Cookie)
-// 	// cookie.Name = "authentication"
-// 	// cookie.Value = tokenEncoded
-// 	// cookie.Expires = time.Now().Add(72 * time.Hour)
-// 	// cookie.Domain = "localhost"
-// 	// cookie.Path = "/"
-// 	// // TODO: enable secure for production
-// 	// // cookie.Secure = true
-// 	// ctx.SetCookie(cookie)
-
-// 	ctx.JSON(status, responseAPI{
-// 		Status: status,
-// 		// ProcessTime: 0,
-// 		Data: struct {
-// 			Token string `json:"token"`
-// 		}{tokenEncoded},
-// 	})
-// 	return nil
-// }
+	// ctx.JSON(status, responseAPI{
+	// 	Status: status,
+	// 	// ProcessTime: 0,
+	// 	Data: struct {
+	// 		Token string `json:"token"`
+	// 	}{tokenEncoded},
+	// })
+	return
+}
 
 // HandleAuthLogin is used for user to login. User sent the credentials (from
 // frontend), then this API returns token
@@ -175,8 +102,9 @@ func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&in)
 	if err != nil {
-		log.WithFields(log.Fields{}).
-			Errorln("[Delivery][HandleAuthLogin][Decode]: ", err.Error())
+		log.WithFields(log.Fields{
+			"in": fmt.Sprintf("%+v", in),
+		}).Errorln("[Delivery][HandleAuthLogin][Decode]: ", err.Error())
 		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
 		return
 	}
@@ -208,7 +136,7 @@ func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
 // to verify and extract token data. This endpoint can be also done in the
 // frontend, but the data will not be verified. It is in the frontend anyway.
 func (h *Handler) HandleAuthMe(w http.ResponseWriter, r *http.Request) {
-	mid, ok := r.Context().Value(ctxData("ctxData")).(middlewareData)
+	mid, ok := r.Context().Value(ctxKey("ctxData")).(middlewareData)
 	if !ok {
 		respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
 		return

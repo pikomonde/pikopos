@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -14,19 +15,28 @@ type responseAPI struct {
 }
 
 func respErrorJSON(w http.ResponseWriter, r *http.Request, status int, errStr string) {
-	// TODO: do ProcessTime
+	processTimeRaw := r.Context().Value(ctxKey("processTime"))
+	if processTimeRaw == nil {
+		log.Errorln("[respSuccessJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' contenxt")
+		respErrorText(w, r)
+		return
+	}
+	processTime, ok := processTimeRaw.(middlewareProcessTime)
+	if !ok {
+		respErrorJSON(w, r, http.StatusInternalServerError, errorMissingProcessingTimeData)
+		return
+	}
 	js, err := json.Marshal(responseAPI{
-		Status: status,
-		// ProcessTime: 0,
+		Status:      status,
+		ProcessTime: int(processTime.ProcessTime.Sub(time.Now()) / time.Microsecond),
 		Data: struct {
 			Message string `json:"message"`
 		}{errStr},
 	})
 	if err != nil {
-		w.Header().Set("Content-Type", "text")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
-		log.WithFields(log.Fields{}).Errorln("[respSuccessJSON] marshal:", err.Error())
+		log.Errorln("[respSuccessJSON] marshal:", err.Error())
+		respErrorText(w, r)
 		return
 	}
 
@@ -37,17 +47,26 @@ func respErrorJSON(w http.ResponseWriter, r *http.Request, status int, errStr st
 }
 
 func respSuccessJSON(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
-	// TODO: do ProcessTime
+	processTimeRaw := r.Context().Value(ctxKey("processTime"))
+	if processTimeRaw == nil {
+		log.Errorln("[respSuccessJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' contenxt")
+		respErrorText(w, r)
+		return
+	}
+	processTime, ok := processTimeRaw.(middlewareProcessTime)
+	if !ok {
+		respErrorJSON(w, r, http.StatusInternalServerError, errorMissingProcessingTimeData)
+		return
+	}
 	js, err := json.Marshal(responseAPI{
-		Status: status,
-		// ProcessTime: 0,
-		Data: data,
+		Status:      status,
+		ProcessTime: int(time.Now().Sub(processTime.ProcessTime) / time.Microsecond),
+		Data:        data,
 	})
 	if err != nil {
-		w.Header().Set("Content-Type", "text")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 - Something bad happened!"))
-		log.WithFields(log.Fields{}).Errorln("[respSuccessJSON] marshal:", err.Error())
+		log.Errorln("[respSuccessJSON] marshal:", err.Error())
+		respErrorText(w, r)
 		return
 	}
 
@@ -57,7 +76,13 @@ func respSuccessJSON(w http.ResponseWriter, r *http.Request, status int, data in
 	return
 }
 
-type ctxData string
+func respErrorText(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text")
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("500 - Something bad happened!"))
+}
+
+type ctxKey string
 
 const errorWrongJSONFormat = "Wrong JSON Format"
 
@@ -66,5 +91,8 @@ const errorExpiredJWTToken = "Expired JWT Token"
 const errorMissingJWTData = "Missing JWT Data"
 const errorDeformedJWTToken = "Deformed JWT Token"
 const errorMissingAuthSessionData = "Missing Auth Session Data"
+const errorMissingProcessingTimeData = "Missing Processing Time Data"
+
+const errorInvalidRequestMethod = "Invalid Request Method"
 
 // config.JWTSecret
