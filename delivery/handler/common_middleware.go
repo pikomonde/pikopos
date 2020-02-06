@@ -20,16 +20,23 @@ type middlewareProcessTime struct {
 
 func ctxGET(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorInvalidRequestMethod)
-			return
-		}
-
 		newCtx := context.WithValue(r.Context(), ctxKey("processTime"),
 			middlewareProcessTime{
 				ProcessTime: time.Now(),
 			})
 		newReq := r.WithContext(newCtx)
+
+		// TODO: this OPTIONS is for cors only
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			return
+		}
+		if r.Method != "GET" {
+			respErrorJSON(w, newReq, http.StatusUnauthorized, errorInvalidRequestMethod)
+			return
+		}
 
 		next.ServeHTTP(w, newReq)
 	})
@@ -37,16 +44,23 @@ func ctxGET(next http.HandlerFunc) http.HandlerFunc {
 
 func ctxPOST(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			respErrorJSON(w, r, http.StatusUnauthorized, errorInvalidRequestMethod)
-			return
-		}
-
 		newCtx := context.WithValue(r.Context(), ctxKey("processTime"),
 			middlewareProcessTime{
 				ProcessTime: time.Now(),
 			})
 		newReq := r.WithContext(newCtx)
+
+		// TODO: this OPTIONS is for cors only
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			return
+		}
+		if r.Method != "POST" {
+			respErrorJSON(w, newReq, http.StatusUnauthorized, errorInvalidRequestMethod)
+			return
+		}
 
 		next.ServeHTTP(w, newReq)
 	})

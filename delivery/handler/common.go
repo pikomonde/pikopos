@@ -17,25 +17,36 @@ type responseAPI struct {
 func respErrorJSON(w http.ResponseWriter, r *http.Request, status int, errStr string) {
 	processTimeRaw := r.Context().Value(ctxKey("processTime"))
 	if processTimeRaw == nil {
-		log.Errorln("[respSuccessJSON] processTime:",
-			"don't forget to add the middleware that add 'processTime' contenxt")
+		log.WithFields(log.Fields{
+			"status":   status,
+			"errorMsg": errStr,
+		}).Errorln("[respErrorJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' context")
 		respErrorText(w, r)
 		return
 	}
 	processTime, ok := processTimeRaw.(middlewareProcessTime)
 	if !ok {
-		respErrorJSON(w, r, http.StatusInternalServerError, errorMissingProcessingTimeData)
+		log.WithFields(log.Fields{
+			"status":   status,
+			"errorMsg": errStr,
+		}).Errorln("[respErrorJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' context")
+		respErrorText(w, r)
 		return
 	}
 	js, err := json.Marshal(responseAPI{
 		Status:      status,
-		ProcessTime: int(processTime.ProcessTime.Sub(time.Now()) / time.Microsecond),
+		ProcessTime: int(time.Now().Sub(processTime.ProcessTime) / time.Microsecond),
 		Data: struct {
 			Message string `json:"message"`
 		}{errStr},
 	})
 	if err != nil {
-		log.Errorln("[respSuccessJSON] marshal:", err.Error())
+		log.WithFields(log.Fields{
+			"status":   status,
+			"errorMsg": errStr,
+		}).Errorln("[respErrorJSON] marshal:", err.Error())
 		respErrorText(w, r)
 		return
 	}
@@ -49,14 +60,22 @@ func respErrorJSON(w http.ResponseWriter, r *http.Request, status int, errStr st
 func respSuccessJSON(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
 	processTimeRaw := r.Context().Value(ctxKey("processTime"))
 	if processTimeRaw == nil {
-		log.Errorln("[respSuccessJSON] processTime:",
-			"don't forget to add the middleware that add 'processTime' contenxt")
+		log.WithFields(log.Fields{
+			"status": status,
+			"data":   data,
+		}).Errorln("[respSuccessJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' context")
 		respErrorText(w, r)
 		return
 	}
 	processTime, ok := processTimeRaw.(middlewareProcessTime)
 	if !ok {
-		respErrorJSON(w, r, http.StatusInternalServerError, errorMissingProcessingTimeData)
+		log.WithFields(log.Fields{
+			"status": status,
+			"data":   data,
+		}).Errorln("[respSuccessJSON] processTime:",
+			"don't forget to add the middleware that add 'processTime' context")
+		respErrorText(w, r)
 		return
 	}
 	js, err := json.Marshal(responseAPI{
@@ -65,7 +84,10 @@ func respSuccessJSON(w http.ResponseWriter, r *http.Request, status int, data in
 		Data:        data,
 	})
 	if err != nil {
-		log.Errorln("[respSuccessJSON] marshal:", err.Error())
+		log.WithFields(log.Fields{
+			"status": status,
+			"data":   data,
+		}).Errorln("[respSuccessJSON] marshal:", err.Error())
 		respErrorText(w, r)
 		return
 	}

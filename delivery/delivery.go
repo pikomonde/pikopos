@@ -9,7 +9,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pikomonde/pikopos/delivery/handler"
 	"github.com/pikomonde/pikopos/service"
-	"github.com/rs/cors"
 )
 
 // Delivery contains services and endpoints
@@ -32,8 +31,6 @@ func (d *Delivery) Start() {
 	d.Handler.RegisterAuth()
 
 	// Starting server
-	// TODO; remove CORS in production
-	serverHandlers := cors.Default().Handler(d.Handler.Mux)
 	srv := &http.Server{
 		ReadTimeout:  5000 * time.Millisecond,
 		WriteTimeout: 5000 * time.Millisecond,
@@ -44,7 +41,7 @@ func (d *Delivery) Start() {
 				tls.X25519,
 			},
 		},
-		Handler: serverHandlers,
+		Handler: d.Handler.Mux,
 		Addr:    ":1235",
 	}
 	srv.ListenAndServe()
