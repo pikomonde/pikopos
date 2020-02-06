@@ -24,6 +24,7 @@ func (h *Handler) RegisterAuth() {
 
 	h.Mux.HandleFunc("/auth/login", ctxPOST(h.HandleAuthLogin))
 	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
+	h.Mux.HandleFunc("/auth/logout", ctxPOST(h.HandleAuthLogout))
 
 	// h.Mux.GET("/login", h.HandlerLoginHTML)
 	// h.Mux.POST("/register", h.HandlerRegisterHTML)
@@ -143,6 +144,19 @@ func (h *Handler) HandleAuthMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respSuccessJSON(w, r, http.StatusOK, mid.User)
+	return
+}
+
+// HandleAuthLogout is used to log out the user. It might be used if the app using
+// a cache (ex: redis), it will delete the record in the cache.
+func (h *Handler) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
+	// mid, ok := r.Context().Value(ctxKey("ctxData")).(middlewareData)
+	// if !ok {
+	// 	respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
+	// 	return
+	// }
+
+	// respSuccessJSON(w, r, http.StatusOK, mid.User)
 	return
 }
 
