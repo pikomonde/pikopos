@@ -23,4 +23,24 @@ func main() {
 	// setup delivery
 	dlvr := delivery.New(serv)
 	dlvr.Start()
+
+	// mux := http.NewServeMux()
+	// mux.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
+	// 	fmt.Print(".")
+	// })
+
+	// srv := &http.Server{
+	// 	ReadTimeout:  5000 * time.Millisecond,
+	// 	WriteTimeout: 5000 * time.Millisecond,
+	// 	TLSConfig: &tls.Config{
+	// 		PreferServerCipherSuites: true,
+	// 		CurvePreferences: []tls.CurveID{
+	// 			tls.CurveP256,
+	// 			tls.X25519,
+	// 		},
+	// 	},
+	// 	Handler: cors.Default().Handler(mux),
+	// 	Addr:    ":1235",
+	// }
+	// log.Fatal(srv.ListenAndServe())
 }

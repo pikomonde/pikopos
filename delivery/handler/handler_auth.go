@@ -9,12 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Handler is used
-type Handler struct {
-	Service *service.Service
-	Mux     *http.ServeMux
-}
-
 // RegisterAuth is used to register auth related handlers
 func (h *Handler) RegisterAuth() {
 	h.Mux.HandleFunc("/ping", ctxGET(h.HandlePing))

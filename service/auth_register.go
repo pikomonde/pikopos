@@ -26,6 +26,7 @@ type RegisterInput struct {
 	Password            string `min:"8" json:"password"`
 }
 
+// Register is used to register a new user
 func (s *Service) Register(ri RegisterInput) (int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
@@ -126,12 +127,14 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	return http.StatusOK, nil
 }
 
+// VerifyInput is used as input for user in registration process
 type VerifyInput struct {
 	EmployeeID     int    `json:"employee_id"`
 	OTPEmail       string `min:"6" max:"6" json:"otp_email"`
 	OTPPhoneNumber string `min:"6" max:"6" json:"otp_phone_number"`
 }
 
+// Verify is used to verify a newly registerd user
 func (s *Service) Verify(vi VerifyInput) (int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user

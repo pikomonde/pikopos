@@ -30,6 +30,7 @@ type LoginOutput struct {
 	Token string `json:"token"`
 }
 
+// Login is used to logged in a user
 func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user

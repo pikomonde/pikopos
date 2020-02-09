@@ -29,6 +29,7 @@ func New(s *service.Service) *Delivery {
 func (d *Delivery) Start() {
 	// Register handlers
 	d.Handler.RegisterAuth()
+	d.Handler.RegisterEmployee()
 
 	// Starting server
 	srv := &http.Server{
