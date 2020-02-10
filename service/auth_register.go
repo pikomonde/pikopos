@@ -35,7 +35,13 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	// remove password for security while logging
 	passwordRaw := ri.Password
 	ri.Password = ""
-	tx, _ := s.Repository.Clients.PikoposMySQLCli.Begin()
+	tx, err := s.Repository.Clients.PikoposMySQLCli.Begin()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"registerInput": fmt.Sprintf("%+v", ri),
+		}).Errorln("[Service][Register][Begin]: ", err.Error())
+		return http.StatusInternalServerError, err
+	}
 
 	company, err := s.Repository.CreateCompany(tx, entity.Company{
 		Username: ri.CompanyUsername,
@@ -129,7 +135,16 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"registerInput": fmt.Sprintf("%+v", ri),
+			"company":       fmt.Sprintf("%+v", company),
+			"role":          fmt.Sprintf("%+v", role),
+			"employee":      fmt.Sprintf("%+v", employee),
+		}).Errorln("[Service][Register][Commit]: ", err.Error())
+		return http.StatusInternalServerError, err
+	}
 	return http.StatusOK, nil
 }
 
