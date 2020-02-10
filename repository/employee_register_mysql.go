@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
 )
 
 // CreateEmployeeRegister is used to create employee_register
-func (c Repository) CreateEmployeeRegister(er entity.EmployeeRegister) (*entity.EmployeeRegister, error) {
+func (r Repository) CreateEmployeeRegister(dbtx common.DBTx, er entity.EmployeeRegister) (*entity.EmployeeRegister, error) {
 	query := `insert into employee_register (employee_id, email, phone_number, otp_code, expired_at) 
 	values (?, ?, ?, ?, ?)`
+	if dbtx == nil {
+		dbtx = r.Clients.PikoposMySQLCli
+	}
 
-	res, err := c.Clients.PikoposMySQLCli.Exec(query,
+	res, err := dbtx.Exec(query,
 		er.EmployeeID, er.Email, er.PhoneNumber,
 		er.OTPCode, er.ExpiredAt)
 	if err != nil {
@@ -38,14 +42,17 @@ func (c Repository) CreateEmployeeRegister(er entity.EmployeeRegister) (*entity.
 }
 
 // IsEmployeeRegisterExist is used to check whether employee_register exist or not
-func (c Repository) IsEmployeeRegisterExist(employeeID int, otpCode string) (bool, error) {
+func (r Repository) IsEmployeeRegisterExist(dbtx common.DBTx, employeeID int, otpCode string) (bool, error) {
 	query := `select 1 from employee_register
 	  where employee_id = ? and otp_code = ? and expired_at < ?`
+	if dbtx == nil {
+		dbtx = r.Clients.PikoposMySQLCli
+	}
 
 	isEmployeeRegisterExist := false
 	timeNow := time.Now()
 
-	err := c.Clients.PikoposMySQLCli.QueryRow(query, employeeID, otpCode, timeNow).
+	err := dbtx.QueryRow(query, employeeID, otpCode, timeNow).
 		Scan(&isEmployeeRegisterExist)
 	if err != nil {
 		log.WithFields(log.Fields{

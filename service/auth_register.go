@@ -35,8 +35,9 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	// remove password for security while logging
 	passwordRaw := ri.Password
 	ri.Password = ""
+	tx, _ := s.Repository.Clients.PikoposMySQLCli.Begin()
 
-	company, err := s.Repository.CreateCompany(entity.Company{
+	company, err := s.Repository.CreateCompany(tx, entity.Company{
 		Username: ri.CompanyUsername,
 		Name:     ri.CompanyName,
 		Status:   entity.CompanyStatusFree,
@@ -44,11 +45,12 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"registerInput": fmt.Sprintf("%+v", ri),
+			"rollback":      tx.Rollback(),
 		}).Errorln("[Service][Register][CreateCompany]: ", err.Error())
 		return http.StatusInternalServerError, err
 	}
 
-	role, err := s.Repository.CreateRole(entity.Role{
+	role, err := s.Repository.CreateRole(tx, entity.Role{
 		CompanyID: company.ID,
 		Name:      entity.RoleSuperAdmin,
 		Status:    entity.RoleStatusActive,
@@ -57,11 +59,12 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 		log.WithFields(log.Fields{
 			"registerInput": fmt.Sprintf("%+v", ri),
 			"company":       fmt.Sprintf("%+v", company),
+			"rollback":      tx.Rollback(),
 		}).Errorln("[Service][Register][CreateRole]: ", err.Error())
 		return http.StatusInternalServerError, err
 	}
 
-	employee, err := s.Repository.CreateEmployee(entity.Employee{
+	employee, err := s.Repository.CreateEmployee(tx, entity.Employee{
 		CompanyID:   company.ID,
 		FullName:    ri.FullName,
 		Email:       ri.EmployeeEmail,
@@ -74,19 +77,21 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 			"registerInput": fmt.Sprintf("%+v", ri),
 			"company":       fmt.Sprintf("%+v", company),
 			"role":          fmt.Sprintf("%+v", role),
+			"rollback":      tx.Rollback(),
 		}).Errorln("[Service][Register][CreateEmployee]: ", err.Error())
 		return http.StatusInternalServerError, err
 	}
 
 	passwordHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
 		passwordRaw, ri.EmployeeEmail, ri.EmployeePhoneNumber, employee.ID))
-	err = s.Repository.UpdateEmployeePassword(company.ID, employee.ID, passwordHashed)
+	err = s.Repository.UpdateEmployeePassword(tx, company.ID, employee.ID, passwordHashed)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"registerInput": fmt.Sprintf("%+v", ri),
 			"company":       fmt.Sprintf("%+v", company),
 			"role":          fmt.Sprintf("%+v", role),
 			"employee":      fmt.Sprintf("%+v", employee),
+			"rollback":      tx.Rollback(),
 		}).Errorln("[Service][Register][UpdateEmployeePassword]: ", err.Error())
 		return http.StatusInternalServerError, err
 	}
@@ -106,7 +111,7 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 
 	otpHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
 		otpCode, ri.EmployeeEmail, ri.EmployeePhoneNumber, employee.ID))
-	_, err = s.Repository.CreateEmployeeRegister(entity.EmployeeRegister{
+	_, err = s.Repository.CreateEmployeeRegister(tx, entity.EmployeeRegister{
 		EmployeeID:  employee.ID,
 		Email:       ri.EmployeeEmail,
 		PhoneNumber: ri.EmployeePhoneNumber,
@@ -119,10 +124,12 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 			"company":       fmt.Sprintf("%+v", company),
 			"role":          fmt.Sprintf("%+v", role),
 			"employee":      fmt.Sprintf("%+v", employee),
+			"rollback":      tx.Rollback(),
 		}).Errorln("[Service][Register][UpdateEmployeePassword]: ", err.Error())
 		return http.StatusInternalServerError, err
 	}
 
+	tx.Commit()
 	return http.StatusOK, nil
 }
 
@@ -142,7 +149,7 @@ func (s *Service) Verify(vi VerifyInput) (int, error) {
 	otpCode := vi.OTPEmail + vi.OTPPhoneNumber
 	// otpHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
 	// 	otpCode, ri.EmployeeEmail, ri.PhoneNumber, employee.ID))
-	isEmployeeRegisterExist, err := s.Repository.IsEmployeeRegisterExist(vi.EmployeeID, otpCode)
+	isEmployeeRegisterExist, err := s.Repository.IsEmployeeRegisterExist(nil, vi.EmployeeID, otpCode)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"verifyInput": fmt.Sprintf("%+v", vi),

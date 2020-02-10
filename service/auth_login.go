@@ -39,7 +39,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	passwordRaw := li.Password
 	li.Password = ""
 
-	company, err := s.Repository.GetCompanyByUsername(li.CompanyUsername)
+	company, err := s.Repository.GetCompanyByUsername(nil, li.CompanyUsername)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
@@ -47,7 +47,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 		return nil, http.StatusInternalServerError, err
 	}
 
-	employee, err := s.Repository.GetEmployeeByIdentifier(company.ID, li.EmployeeIdentifier)
+	employee, err := s.Repository.GetEmployeeByIdentifier(nil, company.ID, li.EmployeeIdentifier)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
@@ -58,7 +58,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 
 	passwordHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
 		passwordRaw, employee.Email, employee.PhoneNumber, employee.ID))
-	expectedPasswordHashed, err := s.Repository.GetEmployeePassword(employee.CompanyID, employee.ID)
+	expectedPasswordHashed, err := s.Repository.GetEmployeePassword(nil, employee.CompanyID, employee.ID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
@@ -72,7 +72,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	}
 
 	// TODO: get privileges
-	// role, err := s.Repository.CreateRole(entity.Role{
+	// role, err := s.Repository.CreateRole(nil, entity.Role{
 	// 	CompanyID: company.ID,
 	// 	Name:      entity.RoleSuperAdmin,
 	// 	Status:    entity.RoleStatusActive,

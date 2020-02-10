@@ -26,7 +26,7 @@ func (s *Service) EmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int,
 	// TODO: validate input
 	// TODO: change to informative error in user
 
-	count, err := s.Repository.GetEmployeesCount(eli.CompanyID)
+	count, err := s.Repository.GetEmployeesCount(nil, eli.CompanyID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"registerInput": fmt.Sprintf("%+v", eli),
@@ -34,7 +34,7 @@ func (s *Service) EmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int,
 		return nil, http.StatusInternalServerError, err
 	}
 
-	employees, err := s.Repository.GetEmployees(eli.CompanyID, repository.Pagination{
+	employees, err := s.Repository.GetEmployees(nil, eli.CompanyID, repository.Pagination{
 		LastID: eli.LastID,
 		Limit:  eli.Limit,
 	})
@@ -55,7 +55,7 @@ func (s *Service) EmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int,
 		}
 	}
 
-	roles, err := s.Repository.GetRolesByIDs(eli.CompanyID, roleIDs)
+	roles, err := s.Repository.GetRolesByIDs(nil, eli.CompanyID, roleIDs)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"registerInput": fmt.Sprintf("%+v", eli),

@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"fmt"
 	"math"
 )
@@ -26,4 +27,12 @@ func OTP(digit int) (string, error) {
 		b[i] = '0' + byte(math.Floor(float64(b[i])/25.6))
 	}
 	return string(b), nil
+}
+
+// DBTx is used as an interface for sqlx.Tx and sqlx.DB
+type DBTx interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Prepare(query string) (*sql.Stmt, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
 }
