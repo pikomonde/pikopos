@@ -83,8 +83,7 @@ create table employee (
   -- id int not null auto_increment,
   company_id int not null,
   id int not null auto_increment,
-  first_name varchar(16) not null,
-  last_name varchar(16) not null,
+  full_name varchar(32) not null,
   email varchar(48) not null,
   phone_number varchar(16) not null,
   password varchar(64) not null, -- hashed

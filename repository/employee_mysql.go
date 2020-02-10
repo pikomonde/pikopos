@@ -9,13 +9,13 @@ import (
 
 // CreateEmployee is used to create an employee
 func (c Repository) CreateEmployee(e entity.Employee) (*entity.Employee, error) {
-	query := `insert into employee (company_id, first_name, last_name, email, phone_number, password, role_id, status) 
+	query := `insert into employee (company_id, full_name, email, phone_number, password, role_id, status) 
 	values (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	res, err := c.Clients.PikoposMySQLCli.Exec(query,
-		e.CompanyID, e.FirstName, e.LastName,
-		e.Email, e.PhoneNumber, "",
-		e.RoleID, e.Status.String())
+		e.CompanyID, e.FullName, e.Email,
+		e.PhoneNumber, "", e.RoleID,
+		e.Status.String())
 	if err != nil {
 		log.WithFields(log.Fields{
 			"companyID":      e.CompanyID,
@@ -41,13 +41,13 @@ func (c Repository) CreateEmployee(e entity.Employee) (*entity.Employee, error) 
 
 // GetEmployeeByIdentifier is used to get employee by email or phone number
 func (c Repository) GetEmployeeByIdentifier(companyID int, employeeIdentifier string) (employee entity.Employee, err error) {
-	query := `select company_id, id, first_name, last_name, email, phone_number, role_id, status+0
+	query := `select company_id, id, full_name, email, phone_number, role_id, status+0
 	  from employee where company_id = ? and (email = ? or phone_number = ?)`
 
 	err = c.Clients.PikoposMySQLCli.QueryRow(query, companyID, employeeIdentifier, employeeIdentifier).Scan(
-		&employee.CompanyID, &employee.ID, &employee.FirstName,
-		&employee.LastName, &employee.Email, &employee.PhoneNumber,
-		&employee.RoleID, &employee.Status,
+		&employee.CompanyID, &employee.ID, &employee.FullName,
+		&employee.Email, &employee.PhoneNumber, &employee.RoleID,
+		&employee.Status,
 	)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -94,7 +94,7 @@ func (c Repository) GetEmployeesCount(companyID int) (n int, err error) {
 // GetEmployees is used to get all employee from same company
 func (c Repository) GetEmployees(companyID int, p Pagination) (employees []entity.Employee, err error) {
 	query := `
-	  select company_id, id, first_name, last_name, email, phone_number, role_id, status+0
+	  select company_id, id, full_name, email, phone_number, role_id, status+0
 		from employee where company_id = ? and id > ? order by id asc limit ?`
 
 	rows, err := c.Clients.PikoposMySQLCli.Query(query, companyID, p.LastID, p.Limit)
@@ -110,9 +110,9 @@ func (c Repository) GetEmployees(companyID int, p Pagination) (employees []entit
 	for rows.Next() {
 		employee := entity.Employee{}
 		err = rows.Scan(
-			&employee.CompanyID, &employee.ID, &employee.FirstName,
-			&employee.LastName, &employee.Email, &employee.PhoneNumber,
-			&employee.RoleID, &employee.Status,
+			&employee.CompanyID, &employee.ID, &employee.FullName,
+			&employee.Email, &employee.PhoneNumber, &employee.RoleID,
+			&employee.Status,
 		)
 		if err != nil {
 			log.WithFields(log.Fields{

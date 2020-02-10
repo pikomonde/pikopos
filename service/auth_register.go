@@ -19,8 +19,7 @@ const (
 type RegisterInput struct {
 	CompanyUsername     string `max:"16" json:"company_username"`
 	CompanyName         string `max:"32" json:"company_name"`
-	FirstName           string `max:"16" json:"first_name"`
-	LastName            string `max:"16" json:"last_name"`
+	FullName            string `max:"32" json:"full_name"`
 	EmployeeEmail       string `max:"48" json:"employee_email"`
 	EmployeePhoneNumber string `max:"16" json:"employee_phone_number"`
 	Password            string `min:"8" json:"password"`
@@ -32,6 +31,7 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	// TODO: change to informative error in user
 	// TODO: validate email
 	// TODO: clean phonenumber (remove "+" in "+62", replace "0" to "62")
+	// TODO: [H] change those queries into 1 transction
 	// remove password for security while logging
 	passwordRaw := ri.Password
 	ri.Password = ""
@@ -63,8 +63,7 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 
 	employee, err := s.Repository.CreateEmployee(entity.Employee{
 		CompanyID:   company.ID,
-		FirstName:   ri.FirstName,
-		LastName:    ri.LastName,
+		FullName:    ri.FullName,
 		Email:       ri.EmployeeEmail,
 		PhoneNumber: ri.EmployeePhoneNumber,
 		RoleID:      role.ID,

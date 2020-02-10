@@ -90,7 +90,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 		CompanyUsername: company.Username,
 		CompanyName:     company.Name,
 		ID:              employee.ID,
-		FullName:        fmt.Sprintf("%s %s", employee.FirstName, employee.LastName),
+		FullName:        fmt.Sprintf("%s %s", employee.FullName),
 		Email:           employee.Email,
 		PhoneNumber:     employee.PhoneNumber,
 		Privileges:      []string{},

@@ -25,8 +25,7 @@ func (es EmployeeStatus) String() string {
 type Employee struct {
 	CompanyID   int
 	ID          int
-	FirstName   string `max:"16"`
-	LastName    string `max:"16"`
+	FullName    string `max:"32"`
 	Email       string `max:"48"`
 	PhoneNumber string `max:"16"`
 	RoleID      int
