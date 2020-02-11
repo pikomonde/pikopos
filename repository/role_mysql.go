@@ -65,7 +65,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 // 	return &role, nil
 // }
 
-// GetRolesByIDs is used to get list of roles by role
+// GetRolesByIDs is used to get list of roles by role id
 func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (map[int]entity.Role, error) {
 	query, args, err := sql.In(`select company_id, id, name, status+0
 	  from role where company_id = ? and id in (?)`, companyID, ids)
@@ -108,4 +108,24 @@ func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (m
 	}
 
 	return roles, nil
+}
+
+// GetRoleByID is used to get role by role id
+func (r Repository) GetRoleByID(dbtx common.DBTx, companyID int, id int) (role entity.Role, err error) {
+	query := `select company_id, id, name, status+0 from role where company_id = ? and id = ?`
+	if dbtx == nil {
+		dbtx = r.Clients.PikoposMySQLCli
+	}
+
+	err = dbtx.QueryRow(query, companyID, id).
+		Scan(&role.CompanyID, &role.ID, &role.Name, &role.Status)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"companyID": companyID,
+			"id":        id,
+		}).Errorln("[Repository][GetRoleByID]: ", err.Error())
+		return role, err
+	}
+
+	return role, nil
 }

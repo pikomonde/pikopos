@@ -10,7 +10,7 @@ import (
 
 // EmployeeListInput is used as request for employee list
 type EmployeeListInput struct {
-	CompanyID int
+	CompanyID int `json:"-"`
 	LastID    int `min:"0" json:"last_id"`
 	Limit     int `min:"10" json:"limit"`
 }
@@ -21,7 +21,7 @@ type EmployeeListOutput struct {
 	Employees []EmployeeOutput `json:"employees"`
 }
 
-// GetEmployeeList is used to get employee list a new user
+// GetEmployeeList is used to get employee list
 func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
@@ -74,7 +74,6 @@ func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, i
 	employeesOutput := make([]EmployeeOutput, 0)
 	for _, v := range employees {
 		employeesOutput = append(employeesOutput, EmployeeOutput{
-			CompanyID:   v.CompanyID,
 			ID:          v.ID,
 			FullName:    v.FullName,
 			Email:       v.Email,

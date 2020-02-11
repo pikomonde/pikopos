@@ -45,9 +45,11 @@ func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
 
 	status, err := h.Service.Register(in)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
-		}).Errorln("[Delivery][HandleAuthRegister][Login]: ", err.Error())
+		if status == http.StatusInternalServerError {
+			log.WithFields(log.Fields{
+				"in": fmt.Sprintf("%+v", in),
+			}).Errorln("[Delivery][HandleAuthRegister][Login]: ", err.Error())
+		}
 		respErrorJSON(w, r, status, err.Error())
 		return
 	}
@@ -106,9 +108,11 @@ func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
 
 	out, status, err := h.Service.Login(in)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
-		}).Errorln("[Delivery][HandleAuthLogin][Login]: ", err.Error())
+		if status == http.StatusInternalServerError {
+			log.WithFields(log.Fields{
+				"in": fmt.Sprintf("%+v", in),
+			}).Errorln("[Delivery][HandleAuthLogin][Login]: ", err.Error())
+		}
 		respErrorJSON(w, r, status, err.Error())
 		return
 	}

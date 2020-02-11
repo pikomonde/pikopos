@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -175,7 +176,7 @@ func (s *Service) Verify(vi VerifyInput) (int, error) {
 		log.WithFields(log.Fields{
 			"verifyInput": fmt.Sprintf("%+v", vi),
 		}).Errorln("[Service][Verify][IsEmployeeRegisterExist]: wrong otp code")
-		return http.StatusBadRequest, err
+		return http.StatusBadRequest, errors.New(errorWrongOTPCode)
 	}
 
 	// TODO: change employee status

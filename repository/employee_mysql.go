@@ -60,11 +60,34 @@ func (r Repository) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, emp
 		log.WithFields(log.Fields{
 			"companyID":          companyID,
 			"employeeIdentifier": employeeIdentifier,
-		}).Errorln("[Repository][GetEmployeeByLogin]: ", err.Error())
+		}).Errorln("[Repository][GetEmployeeByIdentifier][Query]: ", err.Error())
 		return employee, err
 	}
 
 	return employee, nil
+}
+
+// IsEmployeeExist is used to check whether an email or phone number already
+// registered or not
+func (r Repository) IsEmployeeExist(dbtx common.DBTx, companyID int, email, phoneNumber string) (bool, error) {
+	query := `select count(*) as cnt from employee where company_id = ? and (email = ? or phone_number = ?)`
+	if dbtx == nil {
+		dbtx = r.Clients.PikoposMySQLCli
+	}
+
+	var n int
+	err := dbtx.QueryRow(query, companyID, email, phoneNumber).Scan(&n)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"companyID":   companyID,
+			"email":       email,
+			"phoneNumber": phoneNumber,
+		}).Errorln("[Repository][IsEmployeeExist][Query]: ", err.Error())
+		return true, err
+	}
+	isExist := (n > 0)
+
+	return isExist, nil
 }
 
 // GetEmployeePassword is used to get employee's hashed password
@@ -142,6 +165,39 @@ func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) 
 	}
 
 	return employees, nil
+}
+
+// UpdateEmployee is used to update existing employee
+func (r Repository) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *entity.Employee, error) {
+	// TODO: email and phone_number should not be updated
+	query := `update employee set full_name = ?, role_id = ?
+		where company_id = ? and id = ?`
+	if dbtx == nil {
+		dbtx = r.Clients.PikoposMySQLCli
+	}
+
+	res, err := dbtx.Exec(query,
+		e.FullName, e.RoleID,
+		e.CompanyID, e.ID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"companyID": e.CompanyID,
+			"employee":  fmt.Sprintf("%+v", e),
+		}).Errorln("[Repository][UpdateEmployee][Query]: ", err.Error())
+		return 0, nil, err
+	}
+
+	cnt, err := res.RowsAffected()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"companyID":      e.CompanyID,
+			"employeeStatus": e.Status.String(),
+			"employee":       fmt.Sprintf("%+v", e),
+		}).Errorln("[Repository][UpdateEmployee][RowsAffected]: ", err.Error())
+		return 0, nil, err
+	}
+
+	return int(cnt), &e, nil
 }
 
 // UpdateEmployeePassword is used to update employee's hashed password

@@ -68,7 +68,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 		return nil, http.StatusInternalServerError, err
 	}
 	if passwordHashed != expectedPasswordHashed {
-		return nil, http.StatusUnauthorized, errors.New("Wrong Email/Phonenumber or Password")
+		return nil, http.StatusUnauthorized, errors.New(errorWrongLoginInfo)
 	}
 
 	// TODO: get privileges
