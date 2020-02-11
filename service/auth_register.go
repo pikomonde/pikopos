@@ -31,7 +31,7 @@ func (s *Service) Register(ri RegisterInput) (int, error) {
 	// TODO: change to informative error in user
 	// TODO: validate email
 	// TODO: clean phonenumber (remove "+" in "+62", replace "0" to "62")
-	// TODO: [H] change those queries into 1 transction
+	// TODO: add validation, whether a company_username already taken or not
 	// remove password for security while logging
 	passwordRaw := ri.Password
 	ri.Password = ""

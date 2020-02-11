@@ -34,7 +34,7 @@ func (h *Handler) HandleEmployeeList(w http.ResponseWriter, r *http.Request) {
 	}
 	in.CompanyID = mid.User.CompanyID
 
-	out, status, err := h.Service.EmployeeList(in)
+	out, status, err := h.Service.GetEmployeeList(in)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"in": fmt.Sprintf("%+v", in),

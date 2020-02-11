@@ -21,27 +21,34 @@ type EmployeeListOutput struct {
 	Employees []EmployeeOutput `json:"employees"`
 }
 
-// EmployeeList is used to get employee list a new user
-func (s *Service) EmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int, error) {
+// GetEmployeeList is used to get employee list a new user
+func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
-
-	count, err := s.Repository.GetEmployeesCount(nil, eli.CompanyID)
+	tx, err := s.Repository.Clients.PikoposMySQLCli.Begin()
 	if err != nil {
 		log.WithFields(log.Fields{
-			"registerInput": fmt.Sprintf("%+v", eli),
-		}).Errorln("[Service][EmployeeList][GetEmployees]: ", err.Error())
+			"employeeListInput": fmt.Sprintf("%+v", eli),
+		}).Errorln("[Service][GetEmployeeList][Begin]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
-	employees, err := s.Repository.GetEmployees(nil, eli.CompanyID, repository.Pagination{
+	count, err := s.Repository.GetEmployeesCount(tx, eli.CompanyID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"employeeListInput": fmt.Sprintf("%+v", eli),
+		}).Errorln("[Service][GetEmployeeList][GetEmployees]: ", err.Error())
+		return nil, http.StatusInternalServerError, err
+	}
+
+	employees, err := s.Repository.GetEmployees(tx, eli.CompanyID, repository.Pagination{
 		LastID: eli.LastID,
 		Limit:  eli.Limit,
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
-			"registerInput": fmt.Sprintf("%+v", eli),
-		}).Errorln("[Service][EmployeeList][GetEmployees]: ", err.Error())
+			"employeeListInput": fmt.Sprintf("%+v", eli),
+		}).Errorln("[Service][GetEmployeeList][GetEmployees]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -55,12 +62,12 @@ func (s *Service) EmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int,
 		}
 	}
 
-	roles, err := s.Repository.GetRolesByIDs(nil, eli.CompanyID, roleIDs)
+	roles, err := s.Repository.GetRolesByIDs(tx, eli.CompanyID, roleIDs)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"registerInput": fmt.Sprintf("%+v", eli),
-			"roleIDs":       roleIDs,
-		}).Errorln("[Service][EmployeeList][GetRolesByIDs]: ", err.Error())
+			"employeeListInput": fmt.Sprintf("%+v", eli),
+			"roleIDs":           roleIDs,
+		}).Errorln("[Service][GetEmployeeList][GetRolesByIDs]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
