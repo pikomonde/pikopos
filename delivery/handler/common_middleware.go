@@ -34,7 +34,7 @@ func ctxGET(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		if r.Method != "GET" {
-			respErrorJSON(w, newReq, http.StatusUnauthorized, errorInvalidRequestMethod)
+			respErrorJSON(w, newReq, http.StatusMethodNotAllowed, errorInvalidRequestMethod)
 			return
 		}
 
@@ -58,7 +58,7 @@ func ctxPOST(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		if r.Method != "POST" {
-			respErrorJSON(w, newReq, http.StatusUnauthorized, errorInvalidRequestMethod)
+			respErrorJSON(w, newReq, http.StatusMethodNotAllowed, errorInvalidRequestMethod)
 			return
 		}
 
@@ -92,8 +92,8 @@ func middleAuth(next http.HandlerFunc) http.HandlerFunc {
 			log.WithFields(log.Fields{
 				"reqToken": reqToken,
 				"token":    token,
-			}).Errorln("[Delivery][middleAuth][Parse]: ", err.Error())
-			respErrorJSON(w, r, http.StatusUnauthorized, errorWrongJWTSigningMethod)
+			}).Infoln("[Delivery][middleAuth][Parse]: ", err.Error())
+			respErrorJSON(w, r, http.StatusUnauthorized, errorCredentialProblem)
 			return
 		}
 

@@ -14,6 +14,10 @@ type responseAPI struct {
 	Data        interface{} `json:"data"`
 }
 
+type simpleMessage struct {
+	Message string `json:"message"`
+}
+
 func respErrorJSON(w http.ResponseWriter, r *http.Request, status int, errStr string) {
 	processTimeRaw := r.Context().Value(ctxKey("processTime"))
 	if processTimeRaw == nil {
@@ -78,6 +82,16 @@ func respSuccessJSON(w http.ResponseWriter, r *http.Request, status int, data in
 		respErrorText(w, r)
 		return
 	}
+
+	if data == nil {
+		log.WithFields(log.Fields{
+			"status": status,
+			"data":   data,
+		}).Errorln("[respSuccessJSON] data should not be nil")
+		respErrorText(w, r)
+		return
+	}
+
 	js, err := json.Marshal(responseAPI{
 		Status:      status,
 		ProcessTime: int(time.Now().Sub(processTime.ProcessTime) / time.Microsecond),
@@ -108,7 +122,8 @@ type ctxKey string
 
 const errorWrongJSONFormat = "Wrong JSON Format"
 
-const errorWrongJWTSigningMethod = "Wrong JWT Signing Method"
+// const errorWrongJWTSigningMethod = "Wrong JWT Signing Method"
+const errorCredentialProblem = "Credential Problem"
 const errorExpiredJWTToken = "Expired JWT Token"
 const errorMissingJWTData = "Missing JWT Data"
 const errorDeformedJWTToken = "Deformed JWT Token"
@@ -118,3 +133,13 @@ const errorMissingProcessingTimeData = "Missing Processing Time Data"
 const errorInvalidRequestMethod = "Invalid Request Method"
 
 // config.JWTSecret
+
+// internal server error based on endpoints
+const (
+	errorFailedToRegister = "Failed to Register"
+	errorFailedToLogin    = "Failed to Login"
+
+	errorFailedToListEmployees  = "Failed to List Employees"
+	errorFailedToCreateEmployee = "Failed to Create Employees"
+	errorFailedToUpdateEmployee = "Failed to Update Employees"
+)

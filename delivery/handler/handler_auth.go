@@ -48,13 +48,13 @@ func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
 				"in": fmt.Sprintf("%+v", in),
-			}).Errorln("[Delivery][HandleAuthRegister][Login]: ", err.Error())
+			}).Errorln("[Delivery][HandleAuthRegister][Register]: ", err.Error())
 		}
-		respErrorJSON(w, r, status, err.Error())
+		respErrorJSON(w, r, status, errorFailedToRegister)
 		return
 	}
 
-	respSuccessJSON(w, r, status, nil)
+	respSuccessJSON(w, r, status, simpleMessage{"succes"})
 	return
 }
 
@@ -113,7 +113,7 @@ func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
 				"in": fmt.Sprintf("%+v", in),
 			}).Errorln("[Delivery][HandleAuthLogin][Login]: ", err.Error())
 		}
-		respErrorJSON(w, r, status, err.Error())
+		respErrorJSON(w, r, status, errorFailedToLogin)
 		return
 	}
 

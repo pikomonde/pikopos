@@ -30,13 +30,14 @@ type EmployeeUpdateInput struct {
 
 // EmployeeOutput is used as response for employee
 type EmployeeOutput struct {
-	ID          int    `json:"id,omitempty"`
-	FullName    string `json:"full_name,omitempty"`
-	Email       string `json:"email,omitempty"`
-	PhoneNumber string `json:"phone_number,omitempty"`
-	RoleID      int    `json:"role_id,omitempty"`
-	RoleName    string `json:"role_name,omitempty"`
-	Status      string `json:"status,omitempty"`
+	ID          int    `json:"id"`
+	FullName    string `json:"full_name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	RoleID      int    `json:"role_id"`
+	RoleName    string `json:"role_name"`
+	Status      string `json:"status"`
+	RowUpdated  int    `json:"row_updated"`
 }
 
 // CreateEmployee is used to create employee data
@@ -111,9 +112,9 @@ func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int,
 		}).Errorln("[Service][UpdateEmployee][UpdateEmployee]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
-	if cnt == 0 {
-		return nil, http.StatusBadRequest, errors.New(errorNotUpdateRowNotExist)
-	}
+	// if cnt == 0 {
+	// 	return nil, http.StatusBadRequest, errors.New(errorNotUpdateRowNotExist)
+	// }
 
 	role, err := s.Repository.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
 	if err != nil {
@@ -124,6 +125,17 @@ func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int,
 		return nil, http.StatusInternalServerError, err
 	}
 
+	log.Println(EmployeeOutput{
+		ID:          employee.ID,
+		FullName:    employee.FullName,
+		Email:       employee.Email,
+		PhoneNumber: employee.PhoneNumber,
+		RoleID:      employee.RoleID,
+		RoleName:    role.Name,
+		Status:      employee.Status.String(),
+		RowUpdated:  cnt,
+	})
+
 	return &EmployeeOutput{
 		ID:          employee.ID,
 		FullName:    employee.FullName,
@@ -132,5 +144,6 @@ func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int,
 		RoleID:      employee.RoleID,
 		RoleName:    role.Name,
 		Status:      employee.Status.String(),
+		RowUpdated:  cnt,
 	}, http.StatusOK, nil
 }

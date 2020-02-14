@@ -11,8 +11,8 @@ import (
 // EmployeeListInput is used as request for employee list
 type EmployeeListInput struct {
 	CompanyID int `json:"-"`
-	LastID    int `min:"0" json:"last_id"`
-	Limit     int `min:"10" json:"limit"`
+	Page      int `min:"1" json:"-"`
+	Limit     int `min:"10" json:"-"`
 }
 
 // EmployeeListOutput is used as response for employee list
@@ -42,8 +42,8 @@ func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, i
 	}
 
 	employees, err := s.Repository.GetEmployees(tx, eli.CompanyID, repository.Pagination{
-		LastID: eli.LastID,
 		Limit:  eli.Limit,
+		Offset: eli.Limit * (eli.Page - 1),
 	})
 	if err != nil {
 		log.WithFields(log.Fields{

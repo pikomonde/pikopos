@@ -45,7 +45,7 @@ func (r Repository) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity
 
 // GetEmployeeByIdentifier is used to get employee by email or phone number
 func (r Repository) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, employeeIdentifier string) (employee entity.Employee, err error) {
-	query := `select company_id, id, full_name, email, phone_number, role_id, status+0
+	query := `select company_id, id, full_name, email, phone_number, role_id, status-1
 	  from employee where company_id = ? and (email = ? or phone_number = ?)`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -130,13 +130,13 @@ func (r Repository) GetEmployeesCount(dbtx common.DBTx, companyID int) (n int, e
 // GetEmployees is used to get all employee from same company
 func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) (employees []entity.Employee, err error) {
 	query := `
-	  select company_id, id, full_name, email, phone_number, role_id, status+0
-		from employee where company_id = ? and id > ? order by id asc limit ?`
+	  select company_id, id, full_name, email, phone_number, role_id, status-1
+		from employee where company_id = ? order by id asc limit ? offset ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
 	}
 
-	rows, err := dbtx.Query(query, companyID, p.LastID, p.Limit)
+	rows, err := dbtx.Query(query, companyID, p.Limit, p.Offset)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"companyID":  companyID,

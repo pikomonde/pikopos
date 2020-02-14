@@ -6,6 +6,6 @@ package repository
 // before X. Read this for more explanation:
 // https://stackoverflow.com/questions/3799193/mysql-data-best-way-to-implement-paging#comment4027585_3799223
 type Pagination struct {
-	LastID int
+	Offset int
 	Limit  int
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/service"
 	log "github.com/sirupsen/logrus"
 )
@@ -24,26 +25,30 @@ func (h *Handler) HandleEmployeeList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decoder := json.NewDecoder(r.Body)
-	in := service.EmployeeListInput{}
-	err := decoder.Decode(&in)
+	pagination, err := common.ParsePaginationForm(r)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
-		}).Errorln("[Delivery][HandleEmployeeList][Decode]: ", err.Error())
-		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
+		// log.WithFields(log.Fields{
+		// 	"mid": fmt.Sprintf("%+v", mid),
+		// }).Infoln("[Delivery][HandleEmployeeList][ParsePaginationForm]: ", err.Error())
+		respErrorJSON(w, r, http.StatusBadRequest, errorFailedToListEmployees)
 		return
 	}
-	in.CompanyID = mid.User.CompanyID
+
+	in := service.EmployeeListInput{
+		CompanyID: mid.User.CompanyID,
+		Page:      int(pagination.Page),
+		Limit:     int(pagination.Limit),
+	}
 
 	out, status, err := h.Service.GetEmployeeList(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
-				"in": fmt.Sprintf("%+v", in),
+				"mid": fmt.Sprintf("%+v", mid),
+				"in":  fmt.Sprintf("%+v", in),
 			}).Errorln("[Delivery][HandleEmployeeList][GetEmployeeList]: ", err.Error())
 		}
-		respErrorJSON(w, r, status, err.Error())
+		respErrorJSON(w, r, status, errorFailedToListEmployees)
 		return
 	}
 
@@ -64,7 +69,7 @@ func (h *Handler) HandleEmployeeCreate(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&in)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
+			"mid": fmt.Sprintf("%+v", mid),
 		}).Errorln("[Delivery][HandleEmployeeCreate][Decode]: ", err.Error())
 		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
 		return
@@ -75,10 +80,11 @@ func (h *Handler) HandleEmployeeCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
-				"in": fmt.Sprintf("%+v", in),
+				"mid": fmt.Sprintf("%+v", mid),
+				"in":  fmt.Sprintf("%+v", in),
 			}).Errorln("[Delivery][HandleEmployeeCreate][CreateEmployee]: ", err.Error())
 		}
-		respErrorJSON(w, r, status, err.Error())
+		respErrorJSON(w, r, status, errorFailedToCreateEmployee)
 		return
 	}
 
@@ -99,7 +105,7 @@ func (h *Handler) HandleEmployeeUpdate(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&in)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
+			"mid": fmt.Sprintf("%+v", mid),
 		}).Errorln("[Delivery][HandleEmployeeUpdate][Decode]: ", err.Error())
 		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
 		return
@@ -110,10 +116,11 @@ func (h *Handler) HandleEmployeeUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
-				"in": fmt.Sprintf("%+v", in),
+				"mid": fmt.Sprintf("%+v", mid),
+				"in":  fmt.Sprintf("%+v", in),
 			}).Errorln("[Delivery][HandleEmployeeUpdate][UpdateEmployee]: ", err.Error())
 		}
-		respErrorJSON(w, r, status, err.Error())
+		respErrorJSON(w, r, status, errorFailedToUpdateEmployee)
 		return
 	}
 

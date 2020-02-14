@@ -11,14 +11,14 @@ type EmployeeStatus int
 const (
 	// EmployeeStatusUnverified is registered, but not yet verified
 	EmployeeStatusUnverified EmployeeStatus = iota
-	// EmployeeStatusActive is active
-	EmployeeStatusActive
 	// EmployeeStatusInactive is inactive
 	EmployeeStatusInactive
+	// EmployeeStatusActive is active
+	EmployeeStatusActive
 )
 
 func (es EmployeeStatus) String() string {
-	return [...]string{"unverified", "active", "inactive"}[es]
+	return [...]string{"unverified", "inactive", "active"}[es]
 }
 
 // Employee is used to contains employee data

@@ -39,7 +39,7 @@ func (r Repository) CreateCompany(dbtx common.DBTx, company entity.Company) (*en
 
 // GetCompanyByUsername is used to get company by company username
 func (r Repository) GetCompanyByUsername(dbtx common.DBTx, companyUsername string) (company entity.Company, err error) {
-	query := `select id, username, name, status+0 from company where username = ?`
+	query := `select id, username, name, status-1 from company where username = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
 	}
