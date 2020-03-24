@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pikomonde/pikopos/config"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
-	jwt "github.com/zt9/am2.piko/github.com/dgrijalva/jwt-go"
 )
 
 type middlewareProcessTime struct {

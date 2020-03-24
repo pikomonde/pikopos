@@ -125,17 +125,6 @@ func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int,
 		return nil, http.StatusInternalServerError, err
 	}
 
-	log.Println(EmployeeOutput{
-		ID:          employee.ID,
-		FullName:    employee.FullName,
-		Email:       employee.Email,
-		PhoneNumber: employee.PhoneNumber,
-		RoleID:      employee.RoleID,
-		RoleName:    role.Name,
-		Status:      employee.Status.String(),
-		RowUpdated:  cnt,
-	})
-
 	return &EmployeeOutput{
 		ID:          employee.ID,
 		FullName:    employee.FullName,
