@@ -13,9 +13,9 @@ ErrorDocument 404 /500.html
   RewriteEngine On
 
   # Redirect http to https
-  RewriteCond %{HTTP_HOST} ^tadaku\.pikomo\.top [NC]
+  RewriteCond %{HTTP_HOST} ^pos\.pikomo\.top [NC]
   RewriteCond %{SERVER_PORT} 80
-  RewriteRule ^(.*)$ https://tadaku.pikomo.top/$1 [R=301,L]
+  RewriteRule ^(.*)$ https://pos.pikomo.top/$1 [R=301,L]
 
   # Redirect 400s and 500s to 500.html, instead of to the app
   # This should be added, because, if app server is down,
