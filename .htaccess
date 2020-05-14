@@ -1,0 +1,28 @@
+Options -Indexes
+
+ErrorDocument 503 /500.html
+ErrorDocument 500 /500.html
+ErrorDocument 400 /500.html
+ErrorDocument 401 /500.html
+ErrorDocument 403 /500.html
+ErrorDocument 404 /500.html
+
+#ErrorLog "/home/pikomoto/some_error.log"
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Redirect http to https
+  RewriteCond %{HTTP_HOST} ^tadaku\.pikomo\.top [NC]
+  RewriteCond %{SERVER_PORT} 80
+  RewriteRule ^(.*)$ https://tadaku.pikomo.top/$1 [R=301,L]
+
+  # Redirect 400s and 500s to 500.html, instead of to the app
+  # This should be added, because, if app server is down,
+  # the error document will still be redirect to :8358/500.html
+  RewriteRule ^500\.html$ 500.html [L]
+
+  # Redirect to tadaku app
+  RewriteRule ^(.*)$ http://localhost:8358/$1 [P]
+
+</IfModule>
