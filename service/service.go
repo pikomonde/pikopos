@@ -4,14 +4,32 @@ import (
 	// initialize mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pikomonde/pikopos/repository"
+	sAuth "github.com/pikomonde/pikopos/service/auth"
+	sEmployee "github.com/pikomonde/pikopos/service/employee"
 )
 
-// Service contains repositories and all use cases
-type Service struct {
-	Repository *repository.Repository
+// NewAuth returns the AuthRegister service
+func NewAuth(
+	rCompany repository.RepositoryCompany,
+	rEmployee repository.RepositoryEmployee,
+	rEmployeeRegister repository.RepositoryEmployeeRegister,
+	rRole repository.RepositoryRole,
+) *sAuth.ServiceAuth {
+	return &sAuth.ServiceAuth{
+		RepositoryCompany:          rCompany,
+		RepositoryEmployee:         rEmployee,
+		RepositoryEmployeeRegister: rEmployeeRegister,
+		RepositoryRole:             rRole,
+	}
 }
 
-// New returns the service
-func New(r *repository.Repository) *Service {
-	return &Service{r}
+// NewEmployee returns the Employee service
+func NewEmployee(
+	rEmployee repository.RepositoryEmployee,
+	rRole repository.RepositoryRole,
+) *sEmployee.ServiceEmployee {
+	return &sEmployee.ServiceEmployee{
+		RepositoryEmployee: rEmployee,
+		RepositoryRole:     rRole,
+	}
 }

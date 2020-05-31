@@ -1,10 +1,11 @@
-package service
+package employee
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
 )
@@ -41,23 +42,23 @@ type EmployeeOutput struct {
 }
 
 // CreateEmployee is used to create employee data
-func (s *Service) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutput, int, error) {
+func (s *ServiceEmployee) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
 	// TODO: prevent creating user with same email or phone_number in a company
 
-	isExist, err := s.Repository.IsEmployeeExist(nil, eci.CompanyID, eci.Email, eci.PhoneNumber)
+	isExist, err := s.RepositoryEmployee.IsEmployeeExist(nil, eci.CompanyID, eci.Email, eci.PhoneNumber)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eci),
-		}).Errorln("[Service][CreateEmployee][IsEmployeeExist]: ", err.Error())
+		}).Errorln("[ServiceEmployee][CreateEmployee][IsEmployeeExist]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	if isExist {
-		return nil, http.StatusBadRequest, errors.New(errorIdentifierAlreadyExist)
+		return nil, http.StatusBadRequest, errors.New(common.ErrorIdentifierAlreadyExist)
 	}
 
-	employee, err := s.Repository.CreateEmployee(nil, entity.Employee{
+	employee, err := s.RepositoryEmployee.CreateEmployee(nil, entity.Employee{
 		CompanyID:   eci.CompanyID,
 		FullName:    eci.FullName,
 		Email:       eci.Email,
@@ -69,17 +70,17 @@ func (s *Service) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutput, int,
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eci),
 			"isExist":       isExist,
-		}).Errorln("[Service][CreateEmployee][CreateEmployee]: ", err.Error())
+		}).Errorln("[ServiceEmployee][CreateEmployee][CreateEmployee]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
-	role, err := s.Repository.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
+	role, err := s.RepositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eci),
 			"isExist":       isExist,
 			"employee":      fmt.Sprintf("%+v", employee),
-		}).Errorln("[Service][CreateEmployee][GetRoleByID]: ", err.Error())
+		}).Errorln("[ServiceEmployee][CreateEmployee][GetRoleByID]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -95,11 +96,11 @@ func (s *Service) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutput, int,
 }
 
 // UpdateEmployee is used to update employee data
-func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int, error) {
+func (s *ServiceEmployee) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
 
-	cnt, employee, err := s.Repository.UpdateEmployee(nil, entity.Employee{
+	cnt, employee, err := s.RepositoryEmployee.UpdateEmployee(nil, entity.Employee{
 		CompanyID: eui.CompanyID,
 		ID:        eui.ID,
 		FullName:  eui.FullName,
@@ -109,19 +110,19 @@ func (s *Service) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutput, int,
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eui),
-		}).Errorln("[Service][UpdateEmployee][UpdateEmployee]: ", err.Error())
+		}).Errorln("[ServiceEmployee][UpdateEmployee][UpdateEmployee]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	// if cnt == 0 {
 	// 	return nil, http.StatusBadRequest, errors.New(errorNotUpdateRowNotExist)
 	// }
 
-	role, err := s.Repository.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
+	role, err := s.RepositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eui),
 			"employee":      fmt.Sprintf("%+v", employee),
-		}).Errorln("[Service][UpdateEmployee][GetRoleByID]: ", err.Error())
+		}).Errorln("[ServiceEmployee][UpdateEmployee][GetRoleByID]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 

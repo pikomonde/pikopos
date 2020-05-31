@@ -3,11 +3,13 @@ package handler
 import (
 	"net/http"
 
-	"github.com/pikomonde/pikopos/service"
+	sAuth "github.com/pikomonde/pikopos/service/auth"
+	sEmployee "github.com/pikomonde/pikopos/service/employee"
 )
 
 // Handler is used to handles endpoint
 type Handler struct {
-	Service *service.Service
-	Mux     *http.ServeMux
+	ServiceAuth     *sAuth.ServiceAuth
+	ServiceEmployee *sEmployee.ServiceEmployee
+	Mux             *http.ServeMux
 }

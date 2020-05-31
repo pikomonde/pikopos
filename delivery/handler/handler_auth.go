@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pikomonde/pikopos/service"
+	service "github.com/pikomonde/pikopos/service/auth"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -43,7 +43,7 @@ func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.Service.Register(in)
+	status, err := h.ServiceAuth.Register(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
@@ -106,7 +106,7 @@ func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, status, err := h.Service.Login(in)
+	out, status, err := h.ServiceAuth.Login(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{

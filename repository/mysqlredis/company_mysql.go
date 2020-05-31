@@ -1,13 +1,19 @@
-package repository
+package mysqlredis
 
 import (
+	"github.com/pikomonde/pikopos/clients"
 	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
 )
 
+// RepositoryCompany contains clients and Company repositories
+type RepositoryCompany struct {
+	Clients *clients.Clients
+}
+
 // CreateCompany is used to create a company when user first register
-func (r Repository) CreateCompany(dbtx common.DBTx, company entity.Company) (*entity.Company, error) {
+func (r RepositoryCompany) CreateCompany(dbtx common.DBTx, company entity.Company) (*entity.Company, error) {
 	query := `insert into company (username, name, status) values (?, ?, ?)`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -19,7 +25,7 @@ func (r Repository) CreateCompany(dbtx common.DBTx, company entity.Company) (*en
 			"companyUsername": company.Username,
 			"companyName":     company.Name,
 			"companyStatus":   company.Status.String(),
-		}).Errorln("[Repository][CreateCompany]: ", err.Error())
+		}).Errorln("[RepositoryCompany][CreateCompany]: ", err.Error())
 		return nil, err
 	}
 
@@ -29,7 +35,7 @@ func (r Repository) CreateCompany(dbtx common.DBTx, company entity.Company) (*en
 			"companyUsername": company.Username,
 			"companyName":     company.Name,
 			"companyStatus":   company.Status.String(),
-		}).Errorln("[Repository][CreateCompany][LastInsertId]: ", err.Error())
+		}).Errorln("[RepositoryCompany][CreateCompany][LastInsertId]: ", err.Error())
 		return nil, err
 	}
 
@@ -38,7 +44,7 @@ func (r Repository) CreateCompany(dbtx common.DBTx, company entity.Company) (*en
 }
 
 // GetCompanyByUsername is used to get company by company username
-func (r Repository) GetCompanyByUsername(dbtx common.DBTx, companyUsername string) (company entity.Company, err error) {
+func (r RepositoryCompany) GetCompanyByUsername(dbtx common.DBTx, companyUsername string) (company entity.Company, err error) {
 	query := `select id, username, name, status-1 from company where username = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -49,7 +55,7 @@ func (r Repository) GetCompanyByUsername(dbtx common.DBTx, companyUsername strin
 	if err != nil {
 		log.WithFields(log.Fields{
 			"companyUsername": companyUsername,
-		}).Errorln("[Repository][GetCompanyByID]: ", err.Error())
+		}).Errorln("[RepositoryCompany][GetCompanyByID]: ", err.Error())
 		return company, err
 	}
 

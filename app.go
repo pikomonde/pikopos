@@ -15,13 +15,28 @@ func main() {
 	cli := clients.New()
 
 	// setup repository
-	repo := repository.New(cli)
+	repoCompany := repository.NewMySQLRedisCompany(cli)
+	repoEmployee := repository.NewMySQLRedisEmployee(cli)
+	repoEmployeeRegister := repository.NewMySQLRedisEmployeeRegister(cli)
+	repoRole := repository.NewMySQLRedisRole(cli)
 
 	// setup service
-	serv := service.New(repo)
+	servAuth := service.NewAuth(
+		repoCompany,
+		repoEmployee,
+		repoEmployeeRegister,
+		repoRole,
+	)
+	servEmployee := service.NewEmployee(
+		repoEmployee,
+		repoRole,
+	)
 
 	// setup delivery
-	dlvr := delivery.New(serv)
+	dlvr := delivery.New(
+		servAuth,
+		servEmployee,
+	)
 	dlvr.Start()
 
 	// mux := http.NewServeMux()

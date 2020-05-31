@@ -1,14 +1,20 @@
-package repository
+package mysqlredis
 
 import (
 	sql "github.com/jmoiron/sqlx"
+	"github.com/pikomonde/pikopos/clients"
 	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
 )
 
+// RepositoryRole contains clients and role repositories
+type RepositoryRole struct {
+	Clients *clients.Clients
+}
+
 // CreateRole is used to create a new role
-func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role, error) {
+func (r RepositoryRole) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role, error) {
 	query := `insert into role (company_id, name, status) values (?, ?, ?)`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -20,7 +26,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 			"companyID":  role.CompanyID,
 			"roleName":   role.Name,
 			"roleStatus": role.Status.String(),
-		}).Errorln("[Repository][CreateRole]: ", err.Error())
+		}).Errorln("[RepositoryRole][CreateRole]: ", err.Error())
 		return nil, err
 	}
 
@@ -30,7 +36,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 			"companyID":  role.CompanyID,
 			"roleName":   role.Name,
 			"roleStatus": role.Status.String(),
-		}).Errorln("[Repository][CreateRole][LastInsertId]: ", err.Error())
+		}).Errorln("[RepositoryRole][CreateRole][LastInsertId]: ", err.Error())
 		return nil, err
 	}
 
@@ -38,7 +44,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 	return &role, nil
 }
 
-// func (r Repository) GetRoles(role entity.Role) (*entity.Role, error) {
+// func (r RepositoryRole) GetRoles(role entity.Role) (*entity.Role, error) {
 // 	query := `insert into role (company_id, name, status) values (?, ?, ?)`
 
 // 	res, err := r.Clients.PikoposMySQLCli.Exec(query, role.CompanyID, role.Name, role.Status.String())
@@ -47,7 +53,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 // 			"companyID":  role.CompanyID,
 // 			"roleName":   role.Name,
 // 			"roleStatus": role.Status.String(),
-// 		}).Errorln("[Repository][CreateRole]: ", err.Error())
+// 		}).Errorln("[RepositoryRole][CreateRole]: ", err.Error())
 // 		return nil, err
 // 	}
 
@@ -57,7 +63,7 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 // 			"companyID":  role.CompanyID,
 // 			"roleName":   role.Name,
 // 			"roleStatus": role.Status.String(),
-// 		}).Errorln("[Repository][CreateRole][LastInsertId]: ", err.Error())
+// 		}).Errorln("[RepositoryRole][CreateRole][LastInsertId]: ", err.Error())
 // 		return nil, err
 // 	}
 
@@ -66,14 +72,14 @@ func (r Repository) CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role
 // }
 
 // GetRolesByIDs is used to get list of roles by role id
-func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (map[int]entity.Role, error) {
+func (r RepositoryRole) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (map[int]entity.Role, error) {
 	query, args, err := sql.In(`select company_id, id, name, status-1
 	  from role where company_id = ? and id in (?)`, companyID, ids)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"companyID": companyID,
 			"ids":       ids,
-		}).Errorln("[Repository][GetRolesByIDs][In]: ", err.Error())
+		}).Errorln("[RepositoryRole][GetRolesByIDs][In]: ", err.Error())
 		return nil, err
 	}
 	query = r.Clients.PikoposMySQLCli.Rebind(query)
@@ -87,7 +93,7 @@ func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (m
 			"companyID": companyID,
 			"ids":       ids,
 			"args":      args,
-		}).Errorln("[Repository][GetRolesByIDs]: ", err.Error())
+		}).Errorln("[RepositoryRole][GetRolesByIDs]: ", err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -101,7 +107,7 @@ func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (m
 				"companyID": companyID,
 				"ids":       ids,
 				"count":     len(roles),
-			}).Errorln("[Repository][GetRolesByIDs][Scan]: ", err.Error())
+			}).Errorln("[RepositoryRole][GetRolesByIDs][Scan]: ", err.Error())
 			return nil, err
 		}
 		roles[role.ID] = role
@@ -111,7 +117,7 @@ func (r Repository) GetRolesByIDs(dbtx common.DBTx, companyID int, ids []int) (m
 }
 
 // GetRoleByID is used to get role by role id
-func (r Repository) GetRoleByID(dbtx common.DBTx, companyID int, id int) (role entity.Role, err error) {
+func (r RepositoryRole) GetRoleByID(dbtx common.DBTx, companyID int, id int) (role entity.Role, err error) {
 	query := `select company_id, id, name, status-1 from role where company_id = ? and id = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -123,7 +129,7 @@ func (r Repository) GetRoleByID(dbtx common.DBTx, companyID int, id int) (role e
 		log.WithFields(log.Fields{
 			"companyID": companyID,
 			"id":        id,
-		}).Errorln("[Repository][GetRoleByID]: ", err.Error())
+		}).Errorln("[RepositoryRole][GetRoleByID]: ", err.Error())
 		return role, err
 	}
 

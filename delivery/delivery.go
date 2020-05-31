@@ -8,7 +8,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pikomonde/pikopos/delivery/handler"
-	"github.com/pikomonde/pikopos/service"
+	sAuth "github.com/pikomonde/pikopos/service/auth"
+	sEmployee "github.com/pikomonde/pikopos/service/employee"
 )
 
 // Delivery contains services and endpoints
@@ -17,11 +18,15 @@ type Delivery struct {
 }
 
 // New returns the delivery
-func New(s *service.Service) *Delivery {
+func New(
+	sAuth *sAuth.ServiceAuth,
+	sEmployee *sEmployee.ServiceEmployee,
+) *Delivery {
 	mux := http.NewServeMux()
 	return &Delivery{&handler.Handler{
-		Service: s,
-		Mux:     mux,
+		ServiceAuth:     sAuth,
+		ServiceEmployee: sEmployee,
+		Mux:             mux,
 	}}
 }
 

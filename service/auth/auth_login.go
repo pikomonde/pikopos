@@ -1,4 +1,4 @@
-package service
+package auth
 
 import (
 	"encoding/json"
@@ -31,7 +31,7 @@ type LoginOutput struct {
 }
 
 // Login is used to logged in a user
-func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
+func (s *ServiceAuth) Login(li LoginInput) (*LoginOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
 
@@ -39,40 +39,40 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	passwordRaw := li.Password
 	li.Password = ""
 
-	company, err := s.Repository.GetCompanyByUsername(nil, li.CompanyUsername)
+	company, err := s.RepositoryCompany.GetCompanyByUsername(nil, li.CompanyUsername)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
-		}).Errorln("[Service][Login][GetCompanyByUsername]: ", err.Error())
+		}).Errorln("[ServiceAuth][Login][GetCompanyByUsername]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
-	employee, err := s.Repository.GetEmployeeByIdentifier(nil, company.ID, li.EmployeeIdentifier)
+	employee, err := s.RepositoryEmployee.GetEmployeeByIdentifier(nil, company.ID, li.EmployeeIdentifier)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
 			"company":    fmt.Sprintf("%+v", company),
-		}).Errorln("[Service][Login][GetEmployeeByIdentifier]: ", err.Error())
+		}).Errorln("[ServiceAuth][Login][GetEmployeeByIdentifier]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
 	passwordHashed := common.SHA256(fmt.Sprintf("%s-%s-%s-%d",
 		passwordRaw, employee.Email, employee.PhoneNumber, employee.ID))
-	expectedPasswordHashed, err := s.Repository.GetEmployeePassword(nil, employee.CompanyID, employee.ID)
+	expectedPasswordHashed, err := s.RepositoryEmployee.GetEmployeePassword(nil, employee.CompanyID, employee.ID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput": fmt.Sprintf("%+v", li),
 			"company":    fmt.Sprintf("%+v", company),
 			"employee":   fmt.Sprintf("%+v", employee),
-		}).Errorln("[Service][Login][GetEmployeePassword]: ", err.Error())
+		}).Errorln("[ServiceAuth][Login][GetEmployeePassword]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	if passwordHashed != expectedPasswordHashed {
-		return nil, http.StatusUnauthorized, errors.New(errorWrongLoginInfo)
+		return nil, http.StatusUnauthorized, errors.New(common.ErrorWrongLoginInfo)
 	}
 
 	// TODO: get privileges
-	// role, err := s.Repository.CreateRole(nil, entity.Role{
+	// role, err := s.RepositoryRole.CreateRole(nil, entity.Role{
 	// 	CompanyID: company.ID,
 	// 	Name:      entity.RoleSuperAdmin,
 	// 	Status:    entity.RoleStatusActive,
@@ -81,7 +81,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 	// 	log.WithFields(log.Fields{
 	// 		"registerInput": fmt.Sprintf("%+v", ri),
 	// 		"company":       fmt.Sprintf("%+v", company),
-	// 	}).Errorln("[Service][Register][CreateRole]: ", err.Error())
+	// 	}).Errorln("[ServiceAuth][Register][CreateRole]: ", err.Error())
 	// 	return http.StatusInternalServerError, err
 	// }
 
@@ -102,7 +102,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 			"company":            fmt.Sprintf("%+v", company),
 			"employee":           fmt.Sprintf("%+v", employee),
 			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
-		}).Errorln("[Service][Login][Marshal serviceUserSession]: ", err.Error())
+		}).Errorln("[ServiceAuth][Login][Marshal serviceUserSession]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -117,7 +117,7 @@ func (s *Service) Login(li LoginInput) (*LoginOutput, int, error) {
 			"company":            fmt.Sprintf("%+v", company),
 			"employee":           fmt.Sprintf("%+v", employee),
 			"serviceUserSession": fmt.Sprintf("%+v", serviceUserSession),
-		}).Errorln("[Service][Login][SignedString]: ", err.Error())
+		}).Errorln("[ServiceAuth][Login][SignedString]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/pikomonde/pikopos/common"
-	"github.com/pikomonde/pikopos/service"
+	service "github.com/pikomonde/pikopos/service/employee"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,7 +40,7 @@ func (h *Handler) HandleEmployeeList(w http.ResponseWriter, r *http.Request) {
 		Limit:     int(pagination.Limit),
 	}
 
-	out, status, err := h.Service.GetEmployeeList(in)
+	out, status, err := h.ServiceEmployee.GetEmployeeList(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
@@ -76,7 +76,7 @@ func (h *Handler) HandleEmployeeCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	in.CompanyID = mid.User.CompanyID
 
-	out, status, err := h.Service.CreateEmployee(in)
+	out, status, err := h.ServiceEmployee.CreateEmployee(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{
@@ -112,7 +112,7 @@ func (h *Handler) HandleEmployeeUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	in.CompanyID = mid.User.CompanyID
 
-	out, status, err := h.Service.UpdateEmployee(in)
+	out, status, err := h.ServiceEmployee.UpdateEmployee(in)
 	if err != nil {
 		if status == http.StatusInternalServerError {
 			log.WithFields(log.Fields{

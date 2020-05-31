@@ -1,10 +1,10 @@
-package service
+package employee
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/pikomonde/pikopos/repository"
+	"github.com/pikomonde/pikopos/common"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,33 +22,33 @@ type EmployeeListOutput struct {
 }
 
 // GetEmployeeList is used to get employee list
-func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int, error) {
+func (s *ServiceEmployee) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, int, error) {
 	// TODO: validate input
 	// TODO: change to informative error in user
-	tx, err := s.Repository.Clients.PikoposMySQLCli.Begin()
+	// tx, err := s.Repository.Clients.PikoposMySQLCli.Begin()
+	// if err != nil {
+	// 	log.WithFields(log.Fields{
+	// 		"employeeListInput": fmt.Sprintf("%+v", eli),
+	// 	}).Errorln("[ServiceEmployee][GetEmployeeList][Begin]: ", err.Error())
+	// 	return nil, http.StatusInternalServerError, err
+	// }
+
+	count, err := s.RepositoryEmployee.GetEmployeesCount(nil, eli.CompanyID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeListInput": fmt.Sprintf("%+v", eli),
-		}).Errorln("[Service][GetEmployeeList][Begin]: ", err.Error())
+		}).Errorln("[ServiceEmployee][GetEmployeeList][GetEmployees]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
-	count, err := s.Repository.GetEmployeesCount(tx, eli.CompanyID)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"employeeListInput": fmt.Sprintf("%+v", eli),
-		}).Errorln("[Service][GetEmployeeList][GetEmployees]: ", err.Error())
-		return nil, http.StatusInternalServerError, err
-	}
-
-	employees, err := s.Repository.GetEmployees(tx, eli.CompanyID, repository.Pagination{
+	employees, err := s.RepositoryEmployee.GetEmployees(nil, eli.CompanyID, common.PaginationRepo{
 		Limit:  eli.Limit,
 		Offset: eli.Limit * (eli.Page - 1),
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeListInput": fmt.Sprintf("%+v", eli),
-		}).Errorln("[Service][GetEmployeeList][GetEmployees]: ", err.Error())
+		}).Errorln("[ServiceEmployee][GetEmployeeList][GetEmployees]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -62,12 +62,12 @@ func (s *Service) GetEmployeeList(eli EmployeeListInput) (*EmployeeListOutput, i
 		}
 	}
 
-	roles, err := s.Repository.GetRolesByIDs(tx, eli.CompanyID, roleIDs)
+	roles, err := s.RepositoryRole.GetRolesByIDs(nil, eli.CompanyID, roleIDs)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeListInput": fmt.Sprintf("%+v", eli),
 			"roleIDs":           roleIDs,
-		}).Errorln("[Service][GetEmployeeList][GetRolesByIDs]: ", err.Error())
+		}).Errorln("[ServiceEmployee][GetEmployeeList][GetRolesByIDs]: ", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 

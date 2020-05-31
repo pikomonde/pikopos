@@ -1,15 +1,21 @@
-package repository
+package mysqlredis
 
 import (
 	"fmt"
 
+	"github.com/pikomonde/pikopos/clients"
 	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
 	log "github.com/sirupsen/logrus"
 )
 
+// RepositoryEmployee contains clients and Employee repositories
+type RepositoryEmployee struct {
+	Clients *clients.Clients
+}
+
 // CreateEmployee is used to create an employee
-func (r Repository) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity.Employee, error) {
+func (r RepositoryEmployee) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity.Employee, error) {
 	query := `insert into employee (company_id, full_name, email, phone_number, password, role_id, status) 
 	values (?, ?, ?, ?, ?, ?, ?)`
 	if dbtx == nil {
@@ -25,7 +31,7 @@ func (r Repository) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity
 			"companyID":      e.CompanyID,
 			"employeeStatus": e.Status.String(),
 			"employee":       fmt.Sprintf("%+v", e),
-		}).Errorln("[Repository][CreateEmployee]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][CreateEmployee]: ", err.Error())
 		return nil, err
 	}
 
@@ -35,7 +41,7 @@ func (r Repository) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity
 			"companyID":      e.CompanyID,
 			"employeeStatus": e.Status.String(),
 			"employee":       fmt.Sprintf("%+v", e),
-		}).Errorln("[Repository][CreateEmployee]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][CreateEmployee]: ", err.Error())
 		return nil, err
 	}
 
@@ -44,7 +50,7 @@ func (r Repository) CreateEmployee(dbtx common.DBTx, e entity.Employee) (*entity
 }
 
 // GetEmployeeByIdentifier is used to get employee by email or phone number
-func (r Repository) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, employeeIdentifier string) (employee entity.Employee, err error) {
+func (r RepositoryEmployee) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, employeeIdentifier string) (employee entity.Employee, err error) {
 	query := `select company_id, id, full_name, email, phone_number, role_id, status-1
 	  from employee where company_id = ? and (email = ? or phone_number = ?)`
 	if dbtx == nil {
@@ -60,7 +66,7 @@ func (r Repository) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, emp
 		log.WithFields(log.Fields{
 			"companyID":          companyID,
 			"employeeIdentifier": employeeIdentifier,
-		}).Errorln("[Repository][GetEmployeeByIdentifier][Query]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][GetEmployeeByIdentifier][Query]: ", err.Error())
 		return employee, err
 	}
 
@@ -69,7 +75,7 @@ func (r Repository) GetEmployeeByIdentifier(dbtx common.DBTx, companyID int, emp
 
 // IsEmployeeExist is used to check whether an email or phone number already
 // registered or not
-func (r Repository) IsEmployeeExist(dbtx common.DBTx, companyID int, email, phoneNumber string) (bool, error) {
+func (r RepositoryEmployee) IsEmployeeExist(dbtx common.DBTx, companyID int, email, phoneNumber string) (bool, error) {
 	query := `select count(*) as cnt from employee where company_id = ? and (email = ? or phone_number = ?)`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -82,7 +88,7 @@ func (r Repository) IsEmployeeExist(dbtx common.DBTx, companyID int, email, phon
 			"companyID":   companyID,
 			"email":       email,
 			"phoneNumber": phoneNumber,
-		}).Errorln("[Repository][IsEmployeeExist][Query]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][IsEmployeeExist][Query]: ", err.Error())
 		return true, err
 	}
 	isExist := (n > 0)
@@ -91,7 +97,7 @@ func (r Repository) IsEmployeeExist(dbtx common.DBTx, companyID int, email, phon
 }
 
 // GetEmployeePassword is used to get employee's hashed password
-func (r Repository) GetEmployeePassword(dbtx common.DBTx, companyID, employeeID int) (password string, err error) {
+func (r RepositoryEmployee) GetEmployeePassword(dbtx common.DBTx, companyID, employeeID int) (password string, err error) {
 	query := `select password from employee where company_id = ? and id = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -102,7 +108,7 @@ func (r Repository) GetEmployeePassword(dbtx common.DBTx, companyID, employeeID 
 		log.WithFields(log.Fields{
 			"companyID":  companyID,
 			"employeeID": employeeID,
-		}).Errorln("[Repository][GetEmployeePassword]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][GetEmployeePassword]: ", err.Error())
 		return password, err
 	}
 
@@ -110,7 +116,7 @@ func (r Repository) GetEmployeePassword(dbtx common.DBTx, companyID, employeeID 
 }
 
 // GetEmployeesCount is used to count all employees for pagination
-func (r Repository) GetEmployeesCount(dbtx common.DBTx, companyID int) (n int, err error) {
+func (r RepositoryEmployee) GetEmployeesCount(dbtx common.DBTx, companyID int) (n int, err error) {
 	query := `select count(*) as n from employee where company_id = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -120,7 +126,7 @@ func (r Repository) GetEmployeesCount(dbtx common.DBTx, companyID int) (n int, e
 	if err != nil {
 		log.WithFields(log.Fields{
 			"companyID": companyID,
-		}).Errorln("[Repository][GetEmployeesCount]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][GetEmployeesCount]: ", err.Error())
 		return 0, err
 	}
 
@@ -128,7 +134,7 @@ func (r Repository) GetEmployeesCount(dbtx common.DBTx, companyID int) (n int, e
 }
 
 // GetEmployees is used to get all employee from same company
-func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) (employees []entity.Employee, err error) {
+func (r RepositoryEmployee) GetEmployees(dbtx common.DBTx, companyID int, p common.PaginationRepo) (employees []entity.Employee, err error) {
 	query := `
 	  select company_id, id, full_name, email, phone_number, role_id, status-1
 		from employee where company_id = ? order by id asc limit ? offset ?`
@@ -141,7 +147,7 @@ func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) 
 		log.WithFields(log.Fields{
 			"companyID":  companyID,
 			"pagination": fmt.Sprintf("%+v", p),
-		}).Errorln("[Repository][GetEmployees]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][GetEmployees]: ", err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -158,7 +164,7 @@ func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) 
 				"companyID":  companyID,
 				"pagination": fmt.Sprintf("%+v", p),
 				"count":      len(employees),
-			}).Errorln("[Repository][GetEmployees][Scan]: ", err.Error())
+			}).Errorln("[RepositoryEmployee][GetEmployees][Scan]: ", err.Error())
 			return nil, err
 		}
 		employees = append(employees, employee)
@@ -168,7 +174,7 @@ func (r Repository) GetEmployees(dbtx common.DBTx, companyID int, p Pagination) 
 }
 
 // UpdateEmployee is used to update existing employee
-func (r Repository) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *entity.Employee, error) {
+func (r RepositoryEmployee) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *entity.Employee, error) {
 	// TODO: email and phone_number should not be updated
 	query := `update employee set full_name = ?, role_id = ?
 		where company_id = ? and id = ?`
@@ -183,7 +189,7 @@ func (r Repository) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *e
 		log.WithFields(log.Fields{
 			"companyID": e.CompanyID,
 			"employee":  fmt.Sprintf("%+v", e),
-		}).Errorln("[Repository][UpdateEmployee][Query]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][UpdateEmployee][Query]: ", err.Error())
 		return 0, nil, err
 	}
 
@@ -193,7 +199,7 @@ func (r Repository) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *e
 			"companyID":      e.CompanyID,
 			"employeeStatus": e.Status.String(),
 			"employee":       fmt.Sprintf("%+v", e),
-		}).Errorln("[Repository][UpdateEmployee][RowsAffected]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][UpdateEmployee][RowsAffected]: ", err.Error())
 		return 0, nil, err
 	}
 
@@ -201,7 +207,7 @@ func (r Repository) UpdateEmployee(dbtx common.DBTx, e entity.Employee) (int, *e
 }
 
 // UpdateEmployeePassword is used to update employee's hashed password
-func (r Repository) UpdateEmployeePassword(dbtx common.DBTx, companyID, employeeID int, password string) error {
+func (r RepositoryEmployee) UpdateEmployeePassword(dbtx common.DBTx, companyID, employeeID int, password string) error {
 	query := `update employee set password = ? where company_id = ? and id = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -213,7 +219,7 @@ func (r Repository) UpdateEmployeePassword(dbtx common.DBTx, companyID, employee
 			"companyID":  companyID,
 			"employeeID": employeeID,
 			"password":   password,
-		}).Errorln("[Repository][UpdateEmployeePassword]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][UpdateEmployeePassword]: ", err.Error())
 		return err
 	}
 
@@ -221,7 +227,7 @@ func (r Repository) UpdateEmployeePassword(dbtx common.DBTx, companyID, employee
 }
 
 // UpdateEmployeeStatus is used to update employee status
-func (r Repository) UpdateEmployeeStatus(dbtx common.DBTx, companyID, employeeID int, status int) error {
+func (r RepositoryEmployee) UpdateEmployeeStatus(dbtx common.DBTx, companyID, employeeID int, status int) error {
 	query := `update employee set status = ? where company_id = ? and id = ?`
 	if dbtx == nil {
 		dbtx = r.Clients.PikoposMySQLCli
@@ -233,7 +239,7 @@ func (r Repository) UpdateEmployeeStatus(dbtx common.DBTx, companyID, employeeID
 			"companyID":  companyID,
 			"employeeID": employeeID,
 			"status":     status,
-		}).Errorln("[Repository][UpdateEmployeeStatus]: ", err.Error())
+		}).Errorln("[RepositoryEmployee][UpdateEmployeeStatus]: ", err.Error())
 		return err
 	}
 
