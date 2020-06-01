@@ -78,15 +78,14 @@ create table role_privilege (
   foreign key (company_id) references company(id)
 );
 
--- create "employee, employee_register, employee_outlet"
+-- create "employee, employee_login, employee_outlet"
 create table employee (
-  -- id int not null auto_increment,
   company_id int not null,
   id int not null auto_increment,
   full_name varchar(32) not null,
-  email varchar(48) not null,
-  phone_number varchar(16) not null,
-  password varchar(64) not null, -- hashed
+  -- email varchar(48) not null,
+  -- phone_number varchar(16) not null,
+  -- password varchar(64) not null, -- hashed
   role_id int not null,
   pin varchar(64), -- hashed
   status enum('unverified', 'inactive', 'active') not null,
@@ -95,13 +94,23 @@ create table employee (
   foreign key (company_id) references company(id)
 );
 
-create table employee_register (
+-- create table employee_register (
+--   id int not null auto_increment,
+--   employee_id int not null,
+--   email varchar(48) not null,
+--   phone_number varchar(16) not null,
+--   otp_code varchar(64) not null,
+--   expired_at datetime not null,
+--   primary key (id),
+--   foreign key (employee_id) references employee(id)
+-- );
+
+create table employee_login (
   id int not null auto_increment,
   employee_id int not null,
-  email varchar(48) not null,
-  phone_number varchar(16) not null,
-  otp_code varchar(64) not null,
-  expired_at datetime not null,
+  provider enum('google') not null,
+  id_from_provider varchar(255) not null,
+  additional_data json,
   primary key (id),
   foreign key (employee_id) references employee(id)
 );
