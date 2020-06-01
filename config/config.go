@@ -26,8 +26,11 @@ func Init() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Errorln("[Config]: Failed initialize config", err.Error())
+		log.Panicln("[Config]: Failed initialize config", err.Error())
 	}
 
-	viper.Unmarshal(&C)
+	err = viper.Unmarshal(&C)
+	if err != nil {
+		log.Panicln("[Config]: Failed unmarshal config", err.Error())
+	}
 }
