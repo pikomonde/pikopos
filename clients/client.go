@@ -30,6 +30,5 @@ func New() *Clients {
 
 // NewPikoposMySQL is used to store data to pikopos MySQL database
 func NewPikoposMySQL() (*sqlx.DB, error) {
-	return sqlx.Connect("mysql", config.MySQLPikopos)
-
+	return sqlx.Connect("mysql", config.C.MySQLPikopos)
 }

@@ -86,7 +86,7 @@ func middleAuth(next http.HandlerFunc) http.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte(config.JWTSecret), nil
+			return []byte(config.C.JWTSecret), nil
 		})
 		if err != nil {
 			log.WithFields(log.Fields{

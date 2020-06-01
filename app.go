@@ -1,7 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/pikomonde/pikopos/clients"
+	"github.com/pikomonde/pikopos/config"
 	"github.com/pikomonde/pikopos/delivery"
 	"github.com/pikomonde/pikopos/repository"
 	"github.com/pikomonde/pikopos/service"
@@ -9,7 +12,14 @@ import (
 )
 
 func main() {
-	log.SetLevel(log.DebugLevel)
+	if os.Getenv("env") == "PROD" {
+		log.SetLevel(log.InfoLevel)
+	} else {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	// setup config
+	config.Init()
 
 	// setup client
 	cli := clients.New()

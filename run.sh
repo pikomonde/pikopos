@@ -11,6 +11,6 @@ if [ $NumOfOccurences -ne 2 ]; then
   echo "Restarting service: ${ServiceName}..."
   screen -X -S "session_${ServiceName}" quit
   screen -dmS "session_${ServiceName}"
-  screen -S "session_${ServiceName}" -p 0 -X stuff "./service_${ServiceName}\n"
+  screen -S "session_${ServiceName}" -p 0 -X stuff "env=PROD ./service_${ServiceName}\n"
   echo "Service ${ServiceName} started ✔️"
 fi

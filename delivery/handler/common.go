@@ -132,7 +132,7 @@ const errorMissingProcessingTimeData = "Missing Processing Time Data"
 
 const errorInvalidRequestMethod = "Invalid Request Method"
 
-// config.JWTSecret
+// config.C.JWTSecret
 
 // internal server error based on endpoints
 const (

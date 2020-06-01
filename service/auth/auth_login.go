@@ -110,7 +110,7 @@ func (s *ServiceAuth) Login(li LoginInput) (*LoginOutput, int, error) {
 		"data": string(serviceUserSessionBytes),
 		"exp":  time.Now().Add(tokenCookieExpire).Unix(),
 	})
-	tokenEncoded, err := token.SignedString([]byte(config.JWTSecret))
+	tokenEncoded, err := token.SignedString([]byte(config.C.JWTSecret))
 	if err != nil {
 		log.WithFields(log.Fields{
 			"loginInput":         fmt.Sprintf("%+v", li),
