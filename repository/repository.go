@@ -6,8 +6,14 @@ import (
 	"github.com/pikomonde/pikopos/clients"
 	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/entity"
+	"github.com/pikomonde/pikopos/repository/localconfig"
 	"github.com/pikomonde/pikopos/repository/mysqlredis"
+	"golang.org/x/oauth2"
 )
+
+type RepositoryAuth interface {
+	GetAuthConfig(provider string) (*oauth2.Config, error)
+}
 
 type RepositoryCompany interface {
 	CreateCompany(dbtx common.DBTx, company entity.Company) (*entity.Company, error)
@@ -34,6 +40,11 @@ type RepositoryRole interface {
 }
 
 // === MySQLRedis repositories ===
+
+// NewLocalConfigAuth returns Auth repository from config
+func NewLocalConfigAuth(c *clients.Clients) RepositoryAuth {
+	return &localconfig.RepositoryAuth{Clients: c}
+}
 
 // NewMySQLRedisCompany returns Company repository using mysql connection
 func NewMySQLRedisCompany(c *clients.Clients) RepositoryCompany {

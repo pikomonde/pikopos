@@ -8,5 +8,5 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/objx v0.1.1 // indirect
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 )

@@ -10,8 +10,16 @@ import (
 type Config struct {
 	MySQLPikopos string
 	JWTSecret    string
+	BaseURL      string
+
+	OAuthGoogle struct {
+		ClientID     string
+		ClientSecret string
+	}
 }
 
+// TODO: remove it, return the variable to app.go instead. These struct
+// should only be used in clients, not be used in services or deliveries.
 var C Config
 
 // TODO: change from viper to other lighter library

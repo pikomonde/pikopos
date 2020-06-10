@@ -25,12 +25,14 @@ func main() {
 	cli := clients.New()
 
 	// setup repository
+	repoAuth := repository.NewLocalConfigAuth(cli)
 	repoCompany := repository.NewMySQLRedisCompany(cli)
 	repoEmployee := repository.NewMySQLRedisEmployee(cli)
 	repoRole := repository.NewMySQLRedisRole(cli)
 
 	// setup service
 	servAuth := service.NewAuth(
+		repoAuth,
 		repoCompany,
 		repoEmployee,
 		repoRole,

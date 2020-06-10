@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"math"
 )
@@ -13,6 +14,12 @@ func SHA256(s string) string {
 	h := sha256.New()
 	h.Write([]byte(s + salt))
 	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func RandomBase64() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 func OTP(digit int) (string, error) {

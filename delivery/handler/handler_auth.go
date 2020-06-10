@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
+	"os"
+	"time"
 
-	service "github.com/pikomonde/pikopos/service/auth"
+	"github.com/pikomonde/pikopos/config"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,9 +13,12 @@ import (
 func (h *Handler) RegisterAuth() {
 	h.Mux.HandleFunc("/ping", ctxGET(h.HandlePing))
 
-	h.Mux.HandleFunc("/auth/login", ctxPOST(h.HandleAuthLogin))
+	// h.Mux.HandleFunc("/auth/login", ctxPOST(h.HandleAuthLogin))
 	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
 	h.Mux.HandleFunc("/auth/logout", ctxPOST(h.HandleAuthLogout))
+
+	h.Mux.HandleFunc("/auth/google/login", ctxGET(h.HandleAuthProviderLogin))
+	h.Mux.HandleFunc("/auth/google/callback", ctxGET(h.HandleAuthProviderCallback))
 
 	// h.Mux.GET("/login", h.HandlerLoginHTML)
 	// h.Mux.POST("/register", h.HandlerRegisterHTML)
@@ -26,45 +29,45 @@ func (h *Handler) RegisterAuth() {
 	// h.Mux.GET("/restricted", h.HandlerRestricted)
 }
 
-// HandleAuthLogin is used for user to login. User sent the credentials (from
-// frontend), then this API returns token
-func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
-	in := service.LoginInput{}
-	decoder := json.NewDecoder(r.Body)
+// // HandleAuthLogin is used for user to login. User sent the credentials (from
+// // frontend), then this API returns token
+// func (h *Handler) HandleAuthLogin(w http.ResponseWriter, r *http.Request) {
+// 	in := service.LoginInput{}
+// 	decoder := json.NewDecoder(r.Body)
 
-	err := decoder.Decode(&in)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
-		}).Errorln("[Delivery][HandleAuthLogin][Decode]: ", err.Error())
-		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
-		return
-	}
+// 	err := decoder.Decode(&in)
+// 	if err != nil {
+// 		log.WithFields(log.Fields{
+// 			"in": fmt.Sprintf("%+v", in),
+// 		}).Errorln("[Delivery][HandleAuthLogin][Decode]: ", err.Error())
+// 		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
+// 		return
+// 	}
 
-	out, status, err := h.ServiceAuth.Login(in)
-	if err != nil {
-		if status == http.StatusInternalServerError {
-			log.WithFields(log.Fields{
-				"in": fmt.Sprintf("%+v", in),
-			}).Errorln("[Delivery][HandleAuthLogin][Login]: ", err.Error())
-		}
-		respErrorJSON(w, r, status, errorFailedToLogin)
-		return
-	}
+// 	out, status, err := h.ServiceAuth.Login(in)
+// 	if err != nil {
+// 		if status == http.StatusInternalServerError {
+// 			log.WithFields(log.Fields{
+// 				"in": fmt.Sprintf("%+v", in),
+// 			}).Errorln("[Delivery][HandleAuthLogin][Login]: ", err.Error())
+// 		}
+// 		respErrorJSON(w, r, status, errorFailedToLogin)
+// 		return
+// 	}
 
-	// cookie := new(http.Cookie)
-	// cookie.Name = "authentication"
-	// cookie.Value = tokenEncoded
-	// cookie.Expires = time.Now().Add(72 * time.Hour)
-	// cookie.Domain = "localhost"
-	// cookie.Path = "/"
-	// // TODO: enable secure for production
-	// // cookie.Secure = true
-	// ctx.SetCookie(cookie)
+// 	// cookie := new(http.Cookie)
+// 	// cookie.Name = "authentication"
+// 	// cookie.Value = tokenEncoded
+// 	// cookie.Expires = time.Now().Add(72 * time.Hour)
+// 	// cookie.Domain = "localhost"
+// 	// cookie.Path = "/"
+// 	// // TODO: enable secure for production
+// 	// // cookie.Secure = true
+// 	// ctx.SetCookie(cookie)
 
-	respSuccessJSON(w, r, status, out)
-	return
-}
+// 	respSuccessJSON(w, r, status, out)
+// 	return
+// }
 
 // HandleAuthMe is used to get user information from token. It should use only
 // to verify and extract token data. This endpoint can be also done in the
@@ -90,6 +93,50 @@ func (h *Handler) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	// respSuccessJSON(w, r, http.StatusOK, mid.User)
+	return
+}
+
+// HandleAuthProviderLogin is used for user to login using identity provider such as
+// google, facebook, twitter, etc. This API will redirect user to provider's login
+// page.
+func (h *Handler) HandleAuthProviderLogin(w http.ResponseWriter, r *http.Request) {
+	// TODO: get the provider from ctx.form instead
+	provider := "google"
+
+	// getting auth state and redirectURL
+	state, redirectURL, err := h.ServiceAuth.GetAuthStateAndURL(provider)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"provider": provider,
+		}).Errorln("[Handler][HandleAuthProviderLogin][GetAuthURL]: ", err.Error())
+	}
+
+	// setting up cookie
+	cookie := new(http.Cookie)
+	cookie.Name = "state"
+	cookie.Value = state
+	cookie.Expires = time.Now().Add(10 * time.Minute)
+	cookie.Domain = config.C.BaseURL
+	cookie.Path = "/"
+	// enable secure cookie for production
+	if os.Getenv("env") == "PROD" {
+		cookie.Secure = true
+	}
+	http.SetCookie(w, cookie)
+
+	// redirect to provider
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
+
+	return
+}
+
+// HandleAuthProviderCallback is used in login proses. This endpoint specifically
+// used for the provider to give state and code. This endpoint will use the state to
+// validate from CSRF attack and the code is used for getting the token from
+// provider through the exchange process.
+func (h *Handler) HandleAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
+	log.Println("----> B")
+
 	return
 }
 

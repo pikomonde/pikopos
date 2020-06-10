@@ -10,11 +10,13 @@ import (
 
 // NewAuth returns the AuthRegister service
 func NewAuth(
+	rAuth repository.RepositoryAuth,
 	rCompany repository.RepositoryCompany,
 	rEmployee repository.RepositoryEmployee,
 	rRole repository.RepositoryRole,
 ) *sAuth.ServiceAuth {
 	return &sAuth.ServiceAuth{
+		RepositoryAuth:     rAuth,
 		RepositoryCompany:  rCompany,
 		RepositoryEmployee: rEmployee,
 		RepositoryRole:     rRole,

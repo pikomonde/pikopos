@@ -1,2 +1,8 @@
 MySQLPikopos: 'root:pass@/pikopos'
 JWTSecret: 'NJKNSJKAJNJADNJ@2nwjscnd323'
+
+BaseURL: 'https://073d8bef44a6.ngrok.io'
+
+OAuthGoogle:
+  ClientID: '394093830063-si4og62atoo5itc1fei9ardbeufmc4na.apps.googleusercontent.com'
+  ClientSecret: 'gFJC-QTx47abSRBfby1vjbU5'
