@@ -26,11 +26,6 @@ type RepositoryEmployee interface {
 	UpdateEmployeeStatus(dbtx common.DBTx, companyID, employeeID int, status int) error
 }
 
-type RepositoryEmployeeRegister interface {
-	CreateEmployeeRegister(dbtx common.DBTx, er entity.EmployeeRegister) (*entity.EmployeeRegister, error)
-	IsEmployeeRegisterExist(dbtx common.DBTx, employeeID int, otpCode string) (bool, error)
-}
-
 type RepositoryRole interface {
 	CreateRole(dbtx common.DBTx, role entity.Role) (*entity.Role, error)
 	// GetRoles(role entity.Role) (*entity.Role, error)
@@ -48,11 +43,6 @@ func NewMySQLRedisCompany(c *clients.Clients) RepositoryCompany {
 // NewMySQLRedisEmployee returns Employee repository using mysql connection
 func NewMySQLRedisEmployee(c *clients.Clients) RepositoryEmployee {
 	return &mysqlredis.RepositoryEmployee{Clients: c}
-}
-
-// NewMySQLRedisEmployeeRegister returns EmployeeRegister repository using mysql connection
-func NewMySQLRedisEmployeeRegister(c *clients.Clients) RepositoryEmployeeRegister {
-	return &mysqlredis.RepositoryEmployeeRegister{Clients: c}
 }
 
 // NewMySQLRedisRole returns Role repository using mysql connection

@@ -27,14 +27,12 @@ func main() {
 	// setup repository
 	repoCompany := repository.NewMySQLRedisCompany(cli)
 	repoEmployee := repository.NewMySQLRedisEmployee(cli)
-	repoEmployeeRegister := repository.NewMySQLRedisEmployeeRegister(cli)
 	repoRole := repository.NewMySQLRedisRole(cli)
 
 	// setup service
 	servAuth := service.NewAuth(
 		repoCompany,
 		repoEmployee,
-		repoEmployeeRegister,
 		repoRole,
 	)
 	servEmployee := service.NewEmployee(

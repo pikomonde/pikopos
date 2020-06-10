@@ -13,9 +13,6 @@ import (
 func (h *Handler) RegisterAuth() {
 	h.Mux.HandleFunc("/ping", ctxGET(h.HandlePing))
 
-	h.Mux.HandleFunc("/auth/register", ctxPOST(h.HandleAuthRegister))
-	h.Mux.HandleFunc("/auth/verify", ctxPOST(h.HandleAuthVerify))
-
 	h.Mux.HandleFunc("/auth/login", ctxPOST(h.HandleAuthLogin))
 	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
 	h.Mux.HandleFunc("/auth/logout", ctxPOST(h.HandleAuthLogout))
@@ -27,68 +24,6 @@ func (h *Handler) RegisterAuth() {
 	// gr.Use(middleAuth)
 	// gr.GET("/auth/restricted", h.HandlerRestricted)
 	// h.Mux.GET("/restricted", h.HandlerRestricted)
-}
-
-// HandleAuthRegister is used for user to register. User sent the register info
-// (from frontend), then this API returns executes verification code
-func (h *Handler) HandleAuthRegister(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	in := service.RegisterInput{}
-	err := decoder.Decode(&in)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"in": fmt.Sprintf("%+v", in),
-		}).Errorln("[Delivery][HandleAuthRegister][Decode]: ", err.Error())
-		respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
-		return
-	}
-
-	status, err := h.ServiceAuth.Register(in)
-	if err != nil {
-		if status == http.StatusInternalServerError {
-			log.WithFields(log.Fields{
-				"in": fmt.Sprintf("%+v", in),
-			}).Errorln("[Delivery][HandleAuthRegister][Register]: ", err.Error())
-		}
-		respErrorJSON(w, r, status, errorFailedToRegister)
-		return
-	}
-
-	respSuccessJSON(w, r, status, simpleMessage{"succes"})
-	return
-}
-
-// HandleAuthVerify is used for user to verify their account. User sent the otp
-// (from frontend), then the app change the user status to active
-func (h *Handler) HandleAuthVerify(w http.ResponseWriter, r *http.Request) {
-	// decoder := json.NewDecoder(r.Body)
-	// in := service.LoginInput{}
-	// err := decoder.Decode(&in)
-	// if err != nil {
-	// 	log.WithFields(log.Fields{
-	// 		"in": fmt.Sprintf("%+v", in),
-	// 	}).Errorln("[Delivery][HandleAuthVerify][Decode]: ", err.Error())
-	// 	respErrorJSON(w, r, http.StatusBadRequest, errorWrongJSONFormat)
-	// 	return
-	// }
-
-	// tokenEncoded, status, err := d.Service.Verify(li)
-	// if err != nil {
-	// 	ctx.JSON(status, responseAPI{
-	// 		Status: status,
-	// 		// ProcessTime: 0,
-	// 		Data: err.Error(),
-	// 	})
-	// }
-
-	// ctx.JSON(status, responseAPI{
-	// 	Status: status,
-	// 	// ProcessTime: 0,
-	// 	Data: struct {
-	// 		Token string `json:"token"`
-	// 	}{tokenEncoded},
-	// })
-	return
 }
 
 // HandleAuthLogin is used for user to login. User sent the credentials (from

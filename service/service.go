@@ -12,14 +12,12 @@ import (
 func NewAuth(
 	rCompany repository.RepositoryCompany,
 	rEmployee repository.RepositoryEmployee,
-	rEmployeeRegister repository.RepositoryEmployeeRegister,
 	rRole repository.RepositoryRole,
 ) *sAuth.ServiceAuth {
 	return &sAuth.ServiceAuth{
-		RepositoryCompany:          rCompany,
-		RepositoryEmployee:         rEmployee,
-		RepositoryEmployeeRegister: rEmployeeRegister,
-		RepositoryRole:             rRole,
+		RepositoryCompany:  rCompany,
+		RepositoryEmployee: rEmployee,
+		RepositoryRole:     rRole,
 	}
 }
 
