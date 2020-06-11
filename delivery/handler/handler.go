@@ -13,3 +13,8 @@ type Handler struct {
 	ServiceEmployee *sEmployee.ServiceEmployee
 	Mux             *http.ServeMux
 }
+
+func (h *Handler) StaticFrontEnd() {
+	fs := http.FileServer(http.Dir("./dist"))
+	h.Mux.Handle("/", fs)
+}

@@ -33,6 +33,7 @@ func New(
 // Start starts the delivery server
 func (d *Delivery) Start() {
 	// Register handlers
+	d.Handler.StaticFrontEnd()
 	d.Handler.RegisterAuth()
 	d.Handler.RegisterEmployee()
 
