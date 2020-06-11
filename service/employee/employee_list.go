@@ -33,7 +33,7 @@ func (s *ServiceEmployee) GetEmployeeList(eli EmployeeListInput) (*EmployeeListO
 	// 	return nil, http.StatusInternalServerError, err
 	// }
 
-	count, err := s.RepositoryEmployee.GetEmployeesCount(nil, eli.CompanyID)
+	count, err := s.repositoryEmployee.GetEmployeesCount(nil, eli.CompanyID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeListInput": fmt.Sprintf("%+v", eli),
@@ -41,7 +41,7 @@ func (s *ServiceEmployee) GetEmployeeList(eli EmployeeListInput) (*EmployeeListO
 		return nil, http.StatusInternalServerError, err
 	}
 
-	employees, err := s.RepositoryEmployee.GetEmployees(nil, eli.CompanyID, common.PaginationRepo{
+	employees, err := s.repositoryEmployee.GetEmployees(nil, eli.CompanyID, common.PaginationRepo{
 		Limit:  eli.Limit,
 		Offset: eli.Limit * (eli.Page - 1),
 	})
@@ -62,7 +62,7 @@ func (s *ServiceEmployee) GetEmployeeList(eli EmployeeListInput) (*EmployeeListO
 		}
 	}
 
-	roles, err := s.RepositoryRole.GetRolesByIDs(nil, eli.CompanyID, roleIDs)
+	roles, err := s.repositoryRole.GetRolesByIDs(nil, eli.CompanyID, roleIDs)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeListInput": fmt.Sprintf("%+v", eli),

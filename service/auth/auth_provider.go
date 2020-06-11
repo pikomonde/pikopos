@@ -12,7 +12,7 @@ import (
 func (s *ServiceAuth) GenerateStateAndGetAuthURL(provider string) (string, string, error) {
 	state := common.RandomBase64()
 
-	config, err := s.RepositoryAuth.GetAuthConfig(provider)
+	config, err := s.repositoryAuth.GetAuthConfig(provider)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"provider": provider,
@@ -25,7 +25,7 @@ func (s *ServiceAuth) GenerateStateAndGetAuthURL(provider string) (string, strin
 
 // Exchange is used to get token from provider using provider's code
 func (s *ServiceAuth) Exchange(provider, code string) (*oauth2.Token, error) {
-	config, err := s.RepositoryAuth.GetAuthConfig(provider)
+	config, err := s.repositoryAuth.GetAuthConfig(provider)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"provider": provider,
@@ -51,7 +51,7 @@ func (s *ServiceAuth) Exchange(provider, code string) (*oauth2.Token, error) {
 
 // GetIDFromProvider is used to get ID from provider.
 func (s *ServiceAuth) GetIDFromProvider(provider string, token *oauth2.Token) (string, error) {
-	config, err := s.RepositoryAuth.GetAuthConfig(provider)
+	config, err := s.repositoryAuth.GetAuthConfig(provider)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"provider": provider,

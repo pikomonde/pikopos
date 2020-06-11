@@ -47,7 +47,7 @@ func (s *ServiceEmployee) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutp
 	// TODO: change to informative error in user
 	// TODO: prevent creating user with same email or phone_number in a company
 
-	isExist, err := s.RepositoryEmployee.IsEmployeeExist(nil, eci.CompanyID, eci.Email, eci.PhoneNumber)
+	isExist, err := s.repositoryEmployee.IsEmployeeExist(nil, eci.CompanyID, eci.Email, eci.PhoneNumber)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eci),
@@ -58,7 +58,7 @@ func (s *ServiceEmployee) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutp
 		return nil, http.StatusBadRequest, errors.New(common.ErrorIdentifierAlreadyExist)
 	}
 
-	employee, err := s.RepositoryEmployee.CreateEmployee(nil, entity.Employee{
+	employee, err := s.repositoryEmployee.CreateEmployee(nil, entity.Employee{
 		CompanyID:   eci.CompanyID,
 		FullName:    eci.FullName,
 		Email:       eci.Email,
@@ -74,7 +74,7 @@ func (s *ServiceEmployee) CreateEmployee(eci EmployeeCreateInput) (*EmployeeOutp
 		return nil, http.StatusInternalServerError, err
 	}
 
-	role, err := s.RepositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
+	role, err := s.repositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eci),
@@ -100,7 +100,7 @@ func (s *ServiceEmployee) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutp
 	// TODO: validate input
 	// TODO: change to informative error in user
 
-	cnt, employee, err := s.RepositoryEmployee.UpdateEmployee(nil, entity.Employee{
+	cnt, employee, err := s.repositoryEmployee.UpdateEmployee(nil, entity.Employee{
 		CompanyID: eui.CompanyID,
 		ID:        eui.ID,
 		FullName:  eui.FullName,
@@ -117,7 +117,7 @@ func (s *ServiceEmployee) UpdateEmployee(eui EmployeeUpdateInput) (*EmployeeOutp
 	// 	return nil, http.StatusBadRequest, errors.New(errorNotUpdateRowNotExist)
 	// }
 
-	role, err := s.RepositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
+	role, err := s.repositoryRole.GetRoleByID(nil, employee.CompanyID, employee.RoleID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"employeeInput": fmt.Sprintf("%+v", eui),

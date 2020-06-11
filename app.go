@@ -7,7 +7,8 @@ import (
 	"github.com/pikomonde/pikopos/config"
 	"github.com/pikomonde/pikopos/delivery"
 	"github.com/pikomonde/pikopos/repository"
-	"github.com/pikomonde/pikopos/service"
+	sAuth "github.com/pikomonde/pikopos/service/auth"
+	sEmployee "github.com/pikomonde/pikopos/service/employee"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,13 +32,13 @@ func main() {
 	repoRole := repository.NewMySQLRedisRole(cli)
 
 	// setup service
-	servAuth := service.NewAuth(
+	servAuth := sAuth.New(
 		repoAuth,
 		repoCompany,
 		repoEmployee,
 		repoRole,
 	)
-	servEmployee := service.NewEmployee(
+	servEmployee := sEmployee.New(
 		repoEmployee,
 		repoRole,
 	)
