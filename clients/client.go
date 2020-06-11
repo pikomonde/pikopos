@@ -6,11 +6,10 @@ import (
 	// initialize mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/pikomonde/pikopos/common"
 	"github.com/pikomonde/pikopos/config"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/endpoints"
 )
 
 // Clients contains all clients that will be used in the repository
@@ -44,22 +43,25 @@ func newPikoposMySQL() (*sqlx.DB, error) {
 
 func newOAuth() map[string]*oauth2.Config {
 	oauthConfig := make(map[string]*oauth2.Config)
-	oauthConfig["google"] = &oauth2.Config{
-		RedirectURL:  fmt.Sprintf("%s/auth/google/callback", config.C.BaseURL),
-		ClientID:     config.C.OAuthGoogle.ClientID,
-		ClientSecret: config.C.OAuthGoogle.ClientSecret,
-		Scopes: []string{
-			common.OAuthGoogleEmailScope,
-		},
-		Endpoint: google.Endpoint,
+	for provider := range config.C.OAuth {
+		// set endpoint
+		endpoint := oauth2.Endpoint{}
+		switch provider {
+		case "google":
+			endpoint = endpoints.Google
+		case "facebook":
+			endpoint = endpoints.Facebook
+		}
+
+		// set oauthconfig
+		oauthConfig[provider] = &oauth2.Config{
+			RedirectURL:  fmt.Sprintf("https://%s/auth/%s/callback", config.C.BaseURL, provider),
+			ClientID:     config.C.OAuth[provider].ClientID,
+			ClientSecret: config.C.OAuth[provider].ClientSecret,
+			Scopes:       config.C.OAuth[provider].Scopes,
+			Endpoint:     endpoint,
+		}
 	}
 
 	return oauthConfig
-
-	// fmt.Println(googleOauthConfig.AuthCodeURL("AMSMASMAMSAMSMAMSAMS"))
-	// token, _ := googleOauthConfig.Exchange(oauth2.NoContext, "")
-	// client := googleOauthConfig.Client(oauth2.NoContext, token)
-	// client.Get("https://www.googleapis.com/auth/userinfo.email")
-
-	// return &http.Client{}, nil
 }

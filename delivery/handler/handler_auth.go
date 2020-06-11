@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -17,8 +18,11 @@ func (h *Handler) RegisterAuth() {
 	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
 	h.Mux.HandleFunc("/auth/logout", ctxPOST(h.HandleAuthLogout))
 
-	h.Mux.HandleFunc("/auth/google/login", ctxGET(h.HandleAuthProviderLogin))
-	h.Mux.HandleFunc("/auth/google/callback", ctxGET(h.HandleAuthProviderCallback))
+	providers := []string{"google", "facebook"}
+	for _, provider := range providers {
+		h.Mux.HandleFunc(fmt.Sprintf("/auth/%s/login", provider), ctxGET(setProvider(h.HandleAuthProviderLogin, provider)))
+		h.Mux.HandleFunc(fmt.Sprintf("/auth/%s/callback", provider), ctxGET(setProvider(h.HandleAuthProviderCallback, provider)))
+	}
 
 	// h.Mux.GET("/login", h.HandlerLoginHTML)
 	// h.Mux.POST("/register", h.HandlerRegisterHTML)
@@ -100,20 +104,23 @@ func (h *Handler) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
 // google, facebook, twitter, etc. This API will redirect user to provider's login
 // page.
 func (h *Handler) HandleAuthProviderLogin(w http.ResponseWriter, r *http.Request) {
-	// TODO: get the provider from ctx.form instead
-	provider := "google"
+	provider, ok := r.Context().Value(ctxKey("ctxProvider")).(string)
+	if !ok {
+		respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
+		return
+	}
 
 	// getting auth state and redirectURL
-	state, redirectURL, err := h.ServiceAuth.GetAuthStateAndURL(provider)
+	state, redirectURL, err := h.ServiceAuth.GenerateStateAndGetAuthURL(provider)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"provider": provider,
-		}).Errorln("[Handler][HandleAuthProviderLogin][GetAuthURL]: ", err.Error())
+		}).Errorln("[Handler][HandleAuthProviderLogin][GenerateStateAndGetAuthURL]: ", err.Error())
 	}
 
 	// setting up cookie
 	cookie := new(http.Cookie)
-	cookie.Name = "state"
+	cookie.Name = "oauthstate"
 	cookie.Value = state
 	cookie.Expires = time.Now().Add(10 * time.Minute)
 	cookie.Domain = config.C.BaseURL
@@ -135,7 +142,68 @@ func (h *Handler) HandleAuthProviderLogin(w http.ResponseWriter, r *http.Request
 // validate from CSRF attack and the code is used for getting the token from
 // provider through the exchange process.
 func (h *Handler) HandleAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	log.Println("----> B")
+	provider, ok := r.Context().Value(ctxKey("ctxProvider")).(string)
+	if !ok {
+		respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
+		return
+	}
+
+	// get state from cookie
+	stateCookie, err := r.Cookie("oauthstate")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"provider":    provider,
+			"stateCookie": stateCookie,
+		}).Errorln("[Handler][HandleAuthProviderCallback][Cookie State]: ", err.Error())
+		return
+	}
+	stateFromCookie := stateCookie.Value
+
+	// get state from provider
+	stateFromProvider := r.FormValue("state")
+
+	// validate state
+	if stateFromCookie != stateFromProvider {
+		log.WithFields(log.Fields{
+			"provider":          provider,
+			"stateCookie":       stateCookie,
+			"stateFromCookie":   stateFromCookie,
+			"stateFromProvider": stateFromProvider,
+		}).Errorln("[Handler][HandleAuthProviderCallback][ValidateState]: ", err.Error())
+		// TODO: redirect to front-end not authorized
+		return
+	}
+
+	// getting provider client using code
+	code := r.FormValue("code")
+
+	token, err := h.ServiceAuth.Exchange(provider, code)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"provider":          provider,
+			"stateCookie":       stateCookie,
+			"stateFromCookie":   stateFromCookie,
+			"stateFromProvider": stateFromProvider,
+			"code":              code,
+		}).Errorln("[Handler][HandleAuthProviderCallback][Exchange]: ", err.Error())
+		return
+	}
+
+	idFromProvider, err := h.ServiceAuth.GetIDFromProvider(provider, token)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"provider":          provider,
+			"stateCookie":       stateCookie,
+			"stateFromCookie":   stateFromCookie,
+			"stateFromProvider": stateFromProvider,
+			"code":              code,
+		}).Errorln("[Handler][HandleAuthProviderCallback][GetIDFromProvider]: ", err.Error())
+		return
+	}
+
+	_ = idFromProvider
+	// TODO: register if idFromProvider is not yet exist, login if idFromProvider
+	// already exist
 
 	return
 }

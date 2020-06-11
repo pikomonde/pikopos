@@ -12,9 +12,10 @@ type Config struct {
 	JWTSecret    string
 	BaseURL      string
 
-	OAuthGoogle struct {
+	OAuth map[string]struct {
 		ClientID     string
 		ClientSecret string
+		Scopes       []string
 	}
 }
 

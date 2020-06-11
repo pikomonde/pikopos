@@ -1,8 +1,16 @@
 MySQLPikopos: 'root:pass@/pikopos'
 JWTSecret: 'NJKNSJKAJNJADNJ@2nwjscnd323'
 
-BaseURL: 'https://073d8bef44a6.ngrok.io'
+BaseURL: '073d8bef44a6.ngrok.io'
 
-OAuthGoogle:
-  ClientID: '394093830063-si4og62atoo5itc1fei9ardbeufmc4na.apps.googleusercontent.com'
-  ClientSecret: 'gFJC-QTx47abSRBfby1vjbU5'
+OAuth:
+  google:
+    ClientID: ''
+    ClientSecret: ''
+    Scopes:
+      - 'https://www.googleapis.com/auth/userinfo.email'
+      # - 'https://www.googleapis.com/auth/userinfo.profile'
+  facebook:
+    ClientID: ''
+    ClientSecret: ''
+    Scopes:
