@@ -108,9 +108,8 @@ create table employee (
 create table employee_login (
   id int not null auto_increment,
   employee_id int not null,
-  provider enum('google') not null,
+  provider enum('google', 'facebook') not null,
   id_from_provider varchar(255) not null,
-  additional_data json,
   primary key (id),
   foreign key (employee_id) references employee(id)
 );
