@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -18,11 +17,8 @@ func (h *Handler) RegisterAuth() {
 	h.Mux.HandleFunc("/auth/me", ctxGET(middleAuth(h.HandleAuthMe)))
 	h.Mux.HandleFunc("/auth/logout", ctxPOST(h.HandleAuthLogout))
 
-	providers := []string{"google", "facebook"}
-	for _, provider := range providers {
-		h.Mux.HandleFunc(fmt.Sprintf("/auth/%s/login", provider), ctxGET(setProvider(h.HandleAuthProviderLogin, provider)))
-		h.Mux.HandleFunc(fmt.Sprintf("/auth/%s/callback", provider), ctxGET(setProvider(h.HandleAuthProviderCallback, provider)))
-	}
+	h.Mux.HandleFunc("/auth/login", ctxGET(h.HandleAuthProviderLogin))
+	h.Mux.HandleFunc("/auth/callback", ctxGET(h.HandleAuthProviderCallback))
 
 	// h.Mux.GET("/login", h.HandlerLoginHTML)
 	// h.Mux.POST("/register", h.HandlerRegisterHTML)
@@ -104,11 +100,7 @@ func (h *Handler) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
 // google, facebook, twitter, etc. This API will redirect user to provider's login
 // page.
 func (h *Handler) HandleAuthProviderLogin(w http.ResponseWriter, r *http.Request) {
-	provider, ok := r.Context().Value(ctxKey("ctxProvider")).(string)
-	if !ok {
-		respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
-		return
-	}
+	provider := r.FormValue("provider")
 
 	// getting auth state and redirectURL
 	state, redirectURL, err := h.ServiceAuth.GenerateStateAndGetAuthURL(provider)
@@ -142,11 +134,7 @@ func (h *Handler) HandleAuthProviderLogin(w http.ResponseWriter, r *http.Request
 // validate from CSRF attack and the code is used for getting the token from
 // provider through the exchange process.
 func (h *Handler) HandleAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	provider, ok := r.Context().Value(ctxKey("ctxProvider")).(string)
-	if !ok {
-		respErrorJSON(w, r, http.StatusUnauthorized, errorMissingAuthSessionData)
-		return
-	}
+	provider := r.FormValue("provider")
 
 	// get state from cookie
 	stateCookie, err := r.Cookie("oauthstate")

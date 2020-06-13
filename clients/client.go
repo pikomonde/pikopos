@@ -55,7 +55,7 @@ func newOAuth() map[string]*oauth2.Config {
 
 		// set oauthconfig
 		oauthConfig[provider] = &oauth2.Config{
-			RedirectURL:  fmt.Sprintf("https://%s/auth/%s/callback", config.C.BaseURL, provider),
+			RedirectURL:  fmt.Sprintf("https://%s/auth/callback?provider=%s", config.C.BaseURL, provider),
 			ClientID:     config.C.OAuth[provider].ClientID,
 			ClientSecret: config.C.OAuth[provider].ClientSecret,
 			Scopes:       config.C.OAuth[provider].Scopes,

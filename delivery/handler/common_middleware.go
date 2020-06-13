@@ -125,12 +125,3 @@ func middleAuth(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, newReq)
 	})
 }
-
-func setProvider(next http.HandlerFunc, provider string) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		newCtx := context.WithValue(r.Context(), ctxKey("ctxProvider"), provider)
-		newReq := r.WithContext(newCtx)
-
-		next.ServeHTTP(w, newReq)
-	})
-}
