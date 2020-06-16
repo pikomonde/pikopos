@@ -2,7 +2,7 @@
 # https://askubuntu.com/questions/983063/start-a-screen-session-and-run-a-script-without-attaching-to-it
 
 ServiceName='pikopos'
-DomainName='pikopos.pikomo.top'
+DomainName='pos.pikomo.top'
 AppLocation="/home/pikomoto/${DomainName}/service_${ServiceName}"
 
 # get occurences of running apps
