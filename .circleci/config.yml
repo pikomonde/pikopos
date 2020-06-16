@@ -29,7 +29,7 @@ jobs:
       - run: go get -v -t -d ./...
       - run: go test -v ./...
       - run: sh ./build.sh # alternatively, you should make .sh file executable first
-      - run: ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "<remote deploy command>"
+      # - run: ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "<remote deploy command>"
 
 workflows:
   version: 2
