@@ -28,7 +28,7 @@ jobs:
       - checkout
       - run: go get -v -t -d ./...
       - run: go test -v ./...
-      - run: sh ./build.sh # alternatively, you should make .sh file executable first
+      - run: make build
       - add_ssh_keys:
           fingerprints:
             - "30:f5:3e:ca:30:b7:02:23:2e:59:de:ae:17:b0:18:79"
