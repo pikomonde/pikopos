@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -27,13 +28,28 @@ var C Config
 
 // Init is used to initialize new config
 func Init() {
+	appPath, err := os.Executable()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"appPath": appPath,
+		}).Panicln("[Config]: Failed getting executable app location", err.Error())
+	}
+	appPathSplit := strings.Split(appPath, "/")
+	if len(appPathSplit) < 1 {
+		log.WithFields(log.Fields{
+			"appPath":      appPath,
+			"appPathSplit": appPathSplit,
+		}).Panicln("[Config]: Invalid xecutable app location")
+	}
+	appPathDir := strings.Join(appPathSplit[:len(appPathSplit)-1], "/")
+
 	if os.Getenv("env") == "PROD" {
-		viper.SetConfigFile("config/production.yaml")
+		viper.SetConfigFile(appPathDir + "/config/production.yaml")
 	} else {
-		viper.SetConfigFile("config/local.yaml")
+		viper.SetConfigFile(appPathDir + "/config/local.yaml")
 	}
 
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
 		log.Panicln("[Config]: Failed initialize config", err.Error())
 	}
