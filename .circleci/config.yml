@@ -39,9 +39,9 @@ jobs:
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/config/local.yaml $SSH_USER@$SSH_HOST:~/pos.pikomo.top/config
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/makefile $SSH_USER@$SSH_HOST:~/pos.pikomo.top
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/run.sh $SSH_USER@$SSH_HOST:~/pos.pikomo.top
-      - run: sshpass -p $SSH_PASS ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST -p $SSH_PORT cd /home/pikomoto/pos.pikomo.top && make stop
+      - run: sshpass -p $SSH_PASS ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST -p $SSH_PORT "cd /home/pikomoto/pos.pikomo.top && make stop"
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/service_pikopos $SSH_USER@$SSH_HOST:~/pos.pikomo.top
-      - run: sshpass -p $SSH_PASS ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST -p $SSH_PORT /usr/bin/sh /home/pikomoto/pos.pikomo.top/run.sh
+      - run: sshpass -p $SSH_PASS ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST -p $SSH_PORT "/usr/bin/sh /home/pikomoto/pos.pikomo.top/run.sh"
 
 workflows:
   version: 2
