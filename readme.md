@@ -21,7 +21,7 @@ You might want to run the service in your local machine. This backend service ru
 
         ```
         upstream pikopos {
-            server localhost:1235;
+            server localhost:57672;
         }
 
         upstream frontend {
@@ -54,6 +54,8 @@ You might want to run the service in your local machine. This backend service ru
         We might want check whether the nginx service successfully running or not by checking it's status
 
         `sudo service nginx status`
+
+        pres `q` to quit
 
 3. TODO: create tunneling for login / or just inject cookie?
 

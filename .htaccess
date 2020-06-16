@@ -19,10 +19,10 @@ ErrorDocument 404 /500.html
 
   # Redirect 400s and 500s to 500.html, instead of to the app
   # This should be added, because, if app server is down,
-  # the error document will still be redirect to :8358/500.html
+  # the error document will still be redirect to :57672/500.html
   RewriteRule ^500\.html$ 500.html [L]
 
-  # Redirect to tadaku app
-  RewriteRule ^(.*)$ http://localhost:8358/$1 [P]
+  # Redirect to pikopos app
+  RewriteRule ^(.*)$ http://localhost:57672/$1 [P]
 
 </IfModule>
