@@ -36,9 +36,11 @@ jobs:
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/500.html $SSH_USER@$SSH_HOST:~/pos.pikomo.top
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/.htaccess $SSH_USER@$SSH_HOST:~/pos.pikomo.top
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" -r /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/setup $SSH_USER@$SSH_HOST:~/pos.pikomo.top/setup
+      - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" -r /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/config $SSH_USER@$SSH_HOST:~/pos.pikomo.top/config
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/run.sh $SSH_USER@$SSH_HOST:~/pos.pikomo.top
       - run: sshpass -p $SSH_PASS scp -P $SSH_PORT -o "StrictHostKeyChecking no" /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/service_pikopos $SSH_USER@$SSH_HOST:~/pos.pikomo.top
-      # - run: ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "<remote deploy command>"
+      - run: sshpass -p $SSH_PASS ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST -p $SSH_PORT
+      - run: /usr/bin/sh /home/pikomoto/pos.pikomo.top/run.sh
 
 workflows:
   version: 2
