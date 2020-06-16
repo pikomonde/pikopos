@@ -3,7 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  # running test only for PR and test/circle-ci branch
+  # TODO: running test only for PR
   test:
     docker:
       - image: circleci/golang:1.14.4
@@ -18,7 +18,7 @@ jobs:
       - run: go get -v -t -d ./...
       - run: go test -v ./...
 
-  # running test only for merged commit in master and test/circle branch
+  # running test-build-deploy only for merged commit in master
   test-build-deploy:
     docker:
       - image: circleci/golang:1.14.4
@@ -49,4 +49,4 @@ workflows:
           context: org-global
           filters:
             branches:
-              only: /^((test/circle-ci.*)|(master$))/ # only deploy on the master and test/circle-ci* branch
+              only: /^master$/ # only deploy on merge of master branch
