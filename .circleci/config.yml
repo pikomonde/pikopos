@@ -38,12 +38,13 @@ jobs:
 
 workflows:
   version: 2
-  test-build--deploy:
+  test-build-deploy:
     jobs:
       - test
       - build-and-deploy:
           requires:
             - test # only deploy once test job has completed
+          context: org-global
           # filters:
           #   branches:
           #     only: master # only deploy on the master branch
