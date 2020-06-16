@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
+  # running test only for PR and test/circle-ci branch
   test:
     docker:
       - image: circleci/golang:1.14.4
@@ -17,7 +18,8 @@ jobs:
       - run: go get -v -t -d ./...
       - run: go test -v ./...
 
-  build-and-deploy:
+  # running test only for merged commit in master and test/circle branch
+  test-build-deploy:
     docker:
       - image: circleci/golang:1.14.4
 
@@ -25,17 +27,15 @@ jobs:
     steps:
       - checkout
       - run: go get -v -t -d ./...
+      - run: go test -v ./...
       - run: sh ./build.sh # alternatively, you should make .sh file executable first
       - run: ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "<remote deploy command>"
 
 workflows:
   version: 2
-  test-build-deploy:
+  wf-test-build-deploy:
     jobs:
-      - test
-      - build-and-deploy:
-          requires:
-            - test # only deploy once test job has completed
+      - test-build-deploy:
           context: org-global
           filters:
             branches:
