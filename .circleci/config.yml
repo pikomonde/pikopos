@@ -18,7 +18,7 @@ jobs:
       - run: go get -v -t -d ./...
       - run: go test -v ./...
 
-  # running test-build-deploy only for merged commit in master
+  # running test-build-deploy only for merged commit in master and circle-ci branch
   test-build-deploy:
     docker:
       - image: circleci/golang:1.14.4
@@ -49,4 +49,4 @@ workflows:
           context: org-global
           filters:
             branches:
-              only: /^master$/ # only deploy on merge of master branch
+              only: /^(((test|fix)/circle-ci.*)|(master$))/ # only deploy on the merge of master branch and circle-ci branch
