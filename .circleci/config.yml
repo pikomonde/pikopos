@@ -3,7 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  build:
+  test:
     docker:
       # specify the version
       - image: circleci/golang:1.14.4
@@ -24,3 +24,26 @@ jobs:
       # specify any bash command here prefixed with `run: `
       - run: go get -v -t -d ./...
       - run: go test -v ./...
+
+  build-and-deploy:
+    docker:
+      - image: circleci/golang:1.14.4
+
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: ./build.sh
+      - run: ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "<remote deploy command>"
+
+workflows:
+  version: 2
+  test-build--deploy:
+    jobs:
+      - test
+      - build-and-deploy:
+          requires:
+            - test # only deploy once test job has completed
+          # filters:
+          #   branches:
+          #     only: master # only deploy on the master branch
