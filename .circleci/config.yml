@@ -45,6 +45,6 @@ workflows:
           requires:
             - test # only deploy once test job has completed
           context: org-global
-          # filters:
-          #   branches:
-          #     only: master # only deploy on the master branch
+          filters:
+            branches:
+              only: /^((test/circle-ci.*)|(master$))/ # only deploy on the master and test/circle-ci* branch
